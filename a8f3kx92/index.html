@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="robots" content="noindex, nofollow">
-  <title>Our Secret Playground</title>
+  <title>HyeonWoo 🤍 Jam</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -33,6 +33,27 @@
       letter-spacing: 0.02em;
       margin-bottom: 4px;
     }
+    .dday {
+      display: flex;
+      align-items: baseline;
+      gap: 7px;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 6px 16px;
+      border-radius: 999px;
+      box-shadow: 0 3px 10px rgba(230, 120, 150, 0.2);
+      margin: 4px 0 10px;
+    }
+    .dday .num {
+      font-size: 16px;
+      font-weight: 800;
+      color: #e0708f;
+    }
+    .dday .since {
+      font-size: 11px;
+      font-weight: 600;
+      color: #8a7a63;
+    }
+
     .subtitle {
       font-size: 13px;
       color: #8a7a63;
@@ -190,7 +211,11 @@
   </style>
 </head>
 <body>
-  <div class="title">🤍 Our Secret Playground</div>
+  <div class="title">HyeonWoo 🤍 Jam</div>
+  <div class="dday">
+    <span class="num" id="ddayNum">D+1</span>
+    <span class="since">since 2026.07.28</span>
+  </div>
   <div class="subtitle">Press a button and watch us move</div>
 
   <div class="player" id="player">
@@ -208,6 +233,15 @@
   <button class="random-btn" id="randomBtn">🎲 Surprise me!</button>
 
   <script>
+    // D-day counter: 2026-07-28 counts as D+1
+    (function () {
+      const start = new Date(2026, 6, 28);
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const days = Math.round((today - start) / 86400000) + 1;
+      document.getElementById('ddayNum').textContent = 'D+' + days;
+    })();
+
     const MOTIONS = [
       { file: '1_hug.mp4',     emoji: '🤗', label: 'Hug',         playing: 'Hugging tight…' },
       { file: '2_bite.mp4',    emoji: '😬', label: 'Chomp!',      playing: 'Nom nom nom…' },
