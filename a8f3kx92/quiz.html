@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Love Quiz 💘</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: linear-gradient(180deg, #bfe3f2 0%, #dff2ec 55%, #f6ecd9 100%);
+      color: #5a4632;
+    }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+    .screen.gone {
+      opacity: 0;
+      transform: translateY(-20px);
+      pointer-events: none;
+    }
+
+    /* ═══ Lock screen ═══ */
+    #lockScreen {
+      background: linear-gradient(180deg, #2b2440 0%, #4a3b63 60%, #7a5a74 100%);
+      color: #fff;
+      z-index: 30;
+    }
+    .lock-time { font-size: 56px; font-weight: 200; letter-spacing: 2px; }
+    .lock-date { font-size: 14px; opacity: 0.85; margin-top: 4px; }
+    .lock-dday {
+      margin-top: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      background: rgba(255,255,255,0.15);
+      padding: 5px 14px;
+      border-radius: 999px;
+    }
+    .pattern-wrap {
+      position: relative;
+      width: 240px;
+      height: 240px;
+      margin-top: 36px;
+    }
+    .pattern-grid {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      place-items: center;
+    }
+    .pattern-grid .dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.5);
+    }
+    #heartPath {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+    #heartPath path {
+      fill: none;
+      stroke: #ff8fb3;
+      stroke-width: 5;
+      stroke-linecap: round;
+      filter: drop-shadow(0 0 6px rgba(255, 143, 179, 0.8));
+    }
+    .lock-hint {
+      margin-top: 26px;
+      font-size: 14px;
+      opacity: 0.9;
+      animation: pulse 2s ease-in-out infinite;
+      text-align: center;
+      line-height: 1.5;
+    }
+    .lock-hint .kr { font-size: 11px; opacity: 0.7; display: block; }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.9; }
+      50%      { opacity: 0.45; }
+    }
+
+    /* ═══ Quiz screen ═══ */
+    #quizScreen { z-index: 20; }
+
+    .progress {
+      display: flex;
+      gap: 7px;
+      margin-bottom: 26px;
+    }
+    .progress .p {
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      background: rgba(90, 70, 50, 0.18);
+      transition: all 0.3s;
+    }
+    .progress .p.done { background: #e0708f; }
+    .progress .p.now  { background: #e0708f; transform: scale(1.45); box-shadow: 0 0 8px rgba(224,112,143,0.5); }
+
+    .q-card {
+      width: min(92vw, 420px);
+      background: rgba(255, 255, 255, 0.82);
+      border-radius: 24px;
+      padding: 34px 24px 30px;
+      box-shadow: 0 10px 30px rgba(90, 70, 50, 0.16);
+      text-align: center;
+      position: relative;
+    }
+    .q-card.shake { animation: shake 0.4s; }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-10px); }
+      40% { transform: translateX(10px); }
+      60% { transform: translateX(-7px); }
+      80% { transform: translateX(7px); }
+    }
+
+    .q-text { font-size: 21px; font-weight: 700; line-height: 1.4; }
+    .q-kr   { font-size: 13px; color: #8a7a63; margin-top: 8px; }
+    .q-note {
+      min-height: 20px;
+      margin-top: 14px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #e0708f;
+      transition: opacity 0.2s;
+    }
+
+    .answers {
+      position: relative;
+      margin-top: 18px;
+      min-height: 130px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .ans {
+      appearance: none;
+      border: none;
+      font-family: inherit;
+      font-size: 17px;
+      font-weight: 700;
+      padding: 14px 34px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s, font-size 0.25s;
+      box-shadow: 0 4px 12px rgba(90, 70, 50, 0.15);
+    }
+    .ans.yes { background: linear-gradient(135deg, #ff9db8, #ffc48a); color: #6b3a4a; }
+    .ans.no  { background: #efe7da; color: #8a7a63; }
+    .ans:active { transform: scale(0.94); }
+    .ans.runaway { position: absolute; }
+
+    /* Slider question */
+    .slider-wrap { margin-top: 26px; width: 100%; }
+    .slider-value {
+      font-size: 34px;
+      font-weight: 800;
+      color: #e0708f;
+      margin-bottom: 14px;
+      transition: transform 0.2s;
+    }
+    .slider-value.max { transform: scale(1.25); }
+    input[type=range] {
+      width: 100%;
+      accent-color: #e0708f;
+      height: 34px;
+      cursor: pointer;
+    }
+    .slider-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #8a7a63;
+      margin-top: 4px;
+    }
+
+    /* ═══ Analysis / result ═══ */
+    #resultScreen { z-index: 10; }
+    .an-emoji { font-size: 54px; animation: beat 1s ease-in-out infinite; }
+    @keyframes beat {
+      0%, 100% { transform: scale(1); }
+      30%      { transform: scale(1.18); }
+      60%      { transform: scale(0.95); }
+    }
+    .an-text { margin-top: 18px; font-size: 17px; font-weight: 600; min-height: 26px; }
+    .an-bar {
+      width: min(80vw, 320px);
+      height: 12px;
+      border-radius: 999px;
+      background: rgba(90, 70, 50, 0.12);
+      margin-top: 18px;
+      overflow: hidden;
+    }
+    .an-bar .fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #ff9db8, #ffc48a);
+      transition: width 0.35s ease;
+    }
+
+    .result-card {
+      display: none;
+      width: min(92vw, 420px);
+      background: rgba(255, 255, 255, 0.88);
+      border-radius: 24px;
+      padding: 34px 24px;
+      box-shadow: 0 10px 30px rgba(90, 70, 50, 0.16);
+      text-align: center;
+    }
+    .result-card.show { display: block; animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    @keyframes popIn {
+      0%   { transform: scale(0.6); opacity: 0; }
+      100% { transform: scale(1);   opacity: 1; }
+    }
+    .r-percent {
+      font-size: 64px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #e0708f, #e8a955);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .r-title { font-size: 19px; font-weight: 700; margin-top: 6px; }
+    .r-sub   { font-size: 13px; color: #8a7a63; margin-top: 4px; }
+    .r-stats {
+      margin: 20px auto 0;
+      font-size: 13px;
+      color: #5a4632;
+      background: #fdf3e3;
+      border-radius: 14px;
+      padding: 12px;
+      line-height: 1.9;
+      width: fit-content;
+      text-align: left;
+    }
+    .r-home {
+      display: inline-block;
+      margin-top: 22px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 700;
+      color: #6b4a3a;
+      background: linear-gradient(135deg, #ffb6c9, #ffd9a0);
+      padding: 11px 24px;
+      border-radius: 999px;
+      box-shadow: 0 4px 14px rgba(230, 120, 150, 0.3);
+    }
+
+    /* Particles */
+    .particle {
+      position: fixed;
+      font-size: 24px;
+      pointer-events: none;
+      z-index: 50;
+      animation: floatUp 1.2s ease-out forwards;
+    }
+    @keyframes floatUp {
+      0%   { opacity: 1; transform: translate(-50%, 0) scale(0.5) rotate(0deg); }
+      100% { opacity: 0; transform: translate(-50%, -130px) scale(1.25) rotate(18deg); }
+    }
+    .confetti {
+      position: fixed;
+      top: -30px;
+      font-size: 22px;
+      pointer-events: none;
+      z-index: 50;
+      animation: fall linear forwards;
+    }
+    @keyframes fall {
+      to { transform: translateY(110vh) rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══ 0. Lock screen ═══ -->
+  <div class="screen" id="lockScreen">
+    <div class="lock-time" id="lockTime">12:00</div>
+    <div class="lock-date" id="lockDate">Wednesday, August 12</div>
+    <div class="lock-dday" id="lockDday">HyeonWoo 🤍 Jam · D+1</div>
+    <div class="pattern-wrap" id="patternWrap">
+      <div class="pattern-grid">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      </div>
+      <svg id="heartPath" viewBox="0 0 240 240">
+        <path id="heartStroke" d="M120 200 C 40 140, 30 70, 75 55 C 105 45, 118 75, 120 90 C 122 75, 135 45, 165 55 C 210 70, 200 140, 120 200 Z"/>
+      </svg>
+    </div>
+    <div class="lock-hint" id="lockHint">
+      Draw any pattern to unlock 🔒
+      <span class="kr">아무 패턴이나 그려보세요</span>
+    </div>
+  </div>
+
+  <!-- ═══ 1. Quiz ═══ -->
+  <div class="screen gone" id="quizScreen">
+    <div class="progress" id="progress"></div>
+    <div class="q-card" id="qCard">
+      <div class="q-text" id="qText"></div>
+      <div class="q-kr" id="qKr"></div>
+      <div class="q-note" id="qNote">&nbsp;</div>
+      <div class="answers" id="answers"></div>
+    </div>
+  </div>
+
+  <!-- ═══ 2. Analysis & result ═══ -->
+  <div class="screen gone" id="resultScreen">
+    <div id="analysisBox" style="text-align:center;">
+      <div class="an-emoji">💗</div>
+      <div class="an-text" id="anText">Analyzing your heart…</div>
+      <div class="an-bar"><div class="fill" id="anFill"></div></div>
+    </div>
+    <div class="result-card" id="resultCard">
+      <div class="r-percent">100%</div>
+      <div class="r-title">Certified: Completely in Love</div>
+      <div class="r-sub">공식 인증: 완전히 사랑에 빠짐</div>
+      <div class="r-stats" id="rStats">
+        ✅ Questions answered: 9/9<br>
+        💘 Correct answers: 9/9 (obviously)<br>
+        🤨 Doubt detected: 0<br>
+        ⏳ Valid until: forever
+      </div>
+      <a class="r-home" href="./index.html">🏠 Back to our playground</a>
+    </div>
+  </div>
+
+  <script>
+    /* ─── D-day ─── */
+    const START = new Date(2026, 6, 28);
+    function ddayNum() {
+      const n = new Date();
+      const t = new Date(n.getFullYear(), n.getMonth(), n.getDate());
+      return Math.round((t - START) / 86400000) + 1;
+    }
+
+    /* ─── Lock screen ─── */
+    const lockScreen = document.getElementById('lockScreen');
+    const heartStroke = document.getElementById('heartStroke');
+    const lockHint = document.getElementById('lockHint');
+
+    function updateClock() {
+      const n = new Date();
+      document.getElementById('lockTime').textContent =
+        String(n.getHours()).padStart(2, '0') + ':' + String(n.getMinutes()).padStart(2, '0');
+      document.getElementById('lockDate').textContent =
+        n.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+      document.getElementById('lockDday').textContent = 'HyeonWoo 🤍 Jam · D+' + ddayNum();
+    }
+    updateClock();
+    setInterval(updateClock, 30000);
+
+    // Hide the heart path initially
+    const pathLen = heartStroke.getTotalLength();
+    heartStroke.style.strokeDasharray = pathLen;
+    heartStroke.style.strokeDashoffset = pathLen;
+
+    let unlocking = false;
+    document.getElementById('patternWrap').addEventListener('pointerdown', () => {
+      if (unlocking) return;
+      unlocking = true;
+      // Whatever you draw, it becomes a heart
+      heartStroke.style.transition = 'stroke-dashoffset 1.1s ease';
+      heartStroke.style.strokeDashoffset = 0;
+      lockHint.innerHTML = 'Every pattern you draw is a heart 💗<span class="kr">어떤 패턴을 그려도 하트가 됩니다</span>';
+      setTimeout(() => {
+        lockScreen.classList.add('gone');
+        document.getElementById('quizScreen').classList.remove('gone');
+        renderQuestion();
+      }, 1700);
+    });
+
+    /* ─── Quiz data ─── */
+    const NOTES_PRAISE = ['Correct! 💕', 'Of course 😌', 'Right answer!', 'Knew it 💗'];
+
+    const QUESTIONS = [
+      { type: 'shrink',
+        en: "You'll never lie to me, right?", kr: '나한테 거짓말 안 할 거지?',
+        yes: 'Never 🤞', no: 'Hmm…' },
+      { type: 'runaway',
+        en: "You're mine, right?", kr: '너는 내 꺼지?',
+        yes: 'All yours 💘', no: 'No' },
+      { type: 'slider',
+        en: 'How much do you love me?', kr: '나 얼마나 사랑해?' },
+      { type: 'morph',
+        en: 'Do I make your heart flutter?', kr: '내가 너를 설레게 해?',
+        yes: 'Yes 😳', no: 'No', morphs: ['A little…', 'Okay, a lot', 'YES 💗'] },
+      { type: 'grow',
+        en: "You'll set me as your wallpaper, right?", kr: '폰 배경화면 나로 할 거지?',
+        yes: 'Setting it now 📱', no: 'No' },
+      { type: 'runfast',
+        en: "You won't look at anyone else, right?", kr: '다른 사람 안 볼 거지?',
+        yes: 'Only you 👀', no: 'No' },
+      { type: 'fade',
+        en: "You'll stay with me forever, right?", kr: '나랑 평생 함께할 거지?',
+        yes: 'Forever ♾️', no: 'No',
+        fadeLines: ['Forever is short with you.', 'The button is disappearing…', 'Fate has decided.'] },
+      { type: 'pickjam',
+        en: 'Pick the cuter one.', kr: '귀여운 사람 고르기' },
+      { type: 'bite',
+        en: 'Are you going to bite me?', kr: '나 물 거야?',
+        yes: 'Yes 😈', no: 'Never!' },
+    ];
+
+    const quizScreen = document.getElementById('quizScreen');
+    const qCard = document.getElementById('qCard');
+    const qText = document.getElementById('qText');
+    const qKr = document.getElementById('qKr');
+    const qNote = document.getElementById('qNote');
+    const answers = document.getElementById('answers');
+    const progress = document.getElementById('progress');
+
+    QUESTIONS.forEach(() => {
+      const p = document.createElement('span');
+      p.className = 'p';
+      progress.appendChild(p);
+    });
+
+    let qi = 0;
+
+    function note(msg) { qNote.textContent = msg; }
+
+    function makeBtn(label, cls) {
+      const b = document.createElement('button');
+      b.className = 'ans ' + cls;
+      b.textContent = label;
+      return b;
+    }
+
+    function correct(extraMsg) {
+      note(extraMsg || NOTES_PRAISE[Math.floor(Math.random() * NOTES_PRAISE.length)]);
+      burst();
+      setTimeout(() => {
+        qi++;
+        if (qi < QUESTIONS.length) renderQuestion();
+        else startAnalysis();
+      }, 900);
+    }
+
+    function renderQuestion() {
+      const q = QUESTIONS[qi];
+      [...progress.children].forEach((p, i) => {
+        p.className = 'p' + (i < qi ? ' done' : i === qi ? ' now' : '');
+      });
+      qText.textContent = q.en;
+      qKr.textContent = q.kr;
+      note(' ');
+      answers.innerHTML = '';
+      answers.style.minHeight = '130px';
+
+      if (q.type === 'slider') return renderSlider();
+      if (q.type === 'pickjam') return renderPickJam();
+
+      const yes = makeBtn(q.yes, 'yes');
+      const no = makeBtn(q.no, 'no');
+      // Yes on the left half the time, to keep it honest-looking
+      if (qi % 2 === 0) { answers.append(yes, no); } else { answers.append(no, yes); }
+      if (q.type !== 'bite') yes.addEventListener('click', () => correct());
+
+      /* ── tricks on the NO button ── */
+      if (q.type === 'shrink') {
+        let scale = 1;
+        no.addEventListener('click', () => {
+          scale *= 0.68;
+          no.style.transform = `scale(${scale})`;
+          note(scale > 0.35 ? 'The button is getting shy…' : 'And… it’s gone. Convenient 😌');
+          if (scale <= 0.35) setTimeout(() => { no.style.opacity = 0; no.style.pointerEvents = 'none'; }, 250);
+        });
+      }
+
+      if (q.type === 'runaway' || q.type === 'runfast') {
+        let escapes = 0;
+        const flee = () => {
+          escapes++;
+          const speed = q.type === 'runfast' ? Math.max(0.05, 0.25 - escapes * 0.03) : 0.25;
+          no.style.transition = `transform 0.2s, left ${speed}s, top ${speed}s`;
+          if (!no.classList.contains('runaway')) {
+            const r = no.getBoundingClientRect(), a = answers.getBoundingClientRect();
+            no.classList.add('runaway');
+            no.style.left = (r.left - a.left) + 'px';
+            no.style.top = (r.top - a.top) + 'px';
+          }
+          const maxX = answers.clientWidth - no.offsetWidth;
+          const maxY = answers.clientHeight - no.offsetHeight;
+          no.style.left = Math.random() * Math.max(10, maxX) + 'px';
+          no.style.top = Math.random() * Math.max(10, maxY) + 'px';
+          if (q.type === 'runfast' && escapes >= 6) {
+            no.textContent = 'Fine… only you 😮‍💨';
+            no.classList.remove('no'); no.classList.add('yes');
+            no.onclick = () => correct('It gave up. Correct answer accepted 💗');
+            note('The button surrendered.');
+            return;
+          }
+          note(escapes < 3 ? 'It ran away 😏' : 'Still chasing? Really?');
+        };
+        no.addEventListener('pointerover', flee);
+        no.addEventListener('pointerdown', (e) => { e.preventDefault(); flee(); });
+      }
+
+      if (q.type === 'morph') {
+        let step = 0;
+        no.addEventListener('click', () => {
+          if (step < q.morphs.length) {
+            no.textContent = q.morphs[step];
+            note(step === 0 ? 'Oh? The button is being honest…' : 'Almost there…');
+            if (step === q.morphs.length - 1) {
+              no.classList.remove('no'); no.classList.add('yes');
+              no.onclick = () => correct('The button confessed for you 💗');
+            }
+            step++;
+          }
+        });
+      }
+
+      if (q.type === 'grow') {
+        let grows = 0;
+        no.addEventListener('click', () => {
+          grows++;
+          const s = 1 + grows * 0.45;
+          yes.style.transform = `scale(${s})`;
+          yes.style.zIndex = 5;
+          note(grows < 3 ? 'YES is growing…' : 'There’s only one button now 😌');
+          if (grows >= 3) { no.style.opacity = 0.25; no.style.pointerEvents = 'none'; }
+        });
+      }
+
+      if (q.type === 'fade') {
+        let fades = 0;
+        no.addEventListener('click', () => {
+          fades++;
+          no.style.opacity = String(Math.max(0, 1 - fades * 0.34));
+          note(q.fadeLines[Math.min(fades - 1, q.fadeLines.length - 1)]);
+          if (fades >= 3) no.style.pointerEvents = 'none';
+        });
+      }
+
+      if (q.type === 'bite') {
+        // Correct answer is NO here — swap styles so "Never!" looks primary
+        yes.classList.remove('yes'); yes.classList.add('no');
+        no.classList.remove('no'); no.classList.add('yes');
+        no.addEventListener('click', () => correct('Good. …but I might bite YOU anyway 😏'));
+        let scared = 0;
+        yes.addEventListener('click', () => {
+          scared++;
+          qCard.classList.remove('shake');
+          void qCard.offsetWidth;
+          qCard.classList.add('shake');
+          note(scared === 1 ? 'I knew it!! 😤' : 'Stop choosing violence 😤😤');
+          // The yes button gets scared and flees
+          if (!yes.classList.contains('runaway')) {
+            const r = yes.getBoundingClientRect(), a = answers.getBoundingClientRect();
+            yes.classList.add('runaway');
+            yes.style.left = (r.left - a.left) + 'px';
+            yes.style.top = (r.top - a.top) + 'px';
+          }
+          const maxX = answers.clientWidth - yes.offsetWidth;
+          const maxY = answers.clientHeight - yes.offsetHeight;
+          yes.style.left = Math.random() * Math.max(10, maxX) + 'px';
+          yes.style.top = Math.random() * Math.max(10, maxY) + 'px';
+          yes.textContent = scared === 1 ? 'Yes…? 😨' : 'Sorry 😨';
+        });
+      }
+    }
+
+    /* ── slider question ── */
+    function renderSlider() {
+      answers.style.minHeight = 'auto';
+      const wrap = document.createElement('div');
+      wrap.className = 'slider-wrap';
+      wrap.innerHTML = `
+        <div class="slider-value" id="sv">50</div>
+        <input type="range" id="sr" min="0" max="100" value="50">
+        <div class="slider-labels"><span>a little</span><span>a lot</span></div>`;
+      answers.appendChild(wrap);
+      const sr = wrap.querySelector('#sr');
+      const sv = wrap.querySelector('#sv');
+      let done = false;
+      sr.addEventListener('input', () => { if (!done) sv.textContent = sr.value; });
+      const snap = () => {
+        if (done) return;
+        done = true;
+        note('Nice try. Recalibrating to reality…');
+        const iv = setInterval(() => {
+          const v = Number(sr.value);
+          if (v >= 100) {
+            clearInterval(iv);
+            sv.textContent = '∞';
+            sv.classList.add('max');
+            note('Correct. It was never below infinity 💗');
+            burst();
+            setTimeout(() => { qi++; renderQuestion(); }, 1300);
+          } else {
+            sr.value = Math.min(100, v + 4);
+            sv.textContent = sr.value;
+          }
+        }, 30);
+      };
+      sr.addEventListener('change', snap);
+      sr.addEventListener('pointerup', snap);
+    }
+
+    /* ── pick-the-cuter-one question ── */
+    function renderPickJam() {
+      const jam = makeBtn('Jam 🐰', 'yes');
+      const hw = makeBtn('HyeonWoo 😎', 'no');
+      answers.append(hw, jam);
+      jam.onclick = () => correct('Obviously 🐰💕');
+      let tries = 0;
+      hw.onclick = () => {
+        tries++;
+        if (tries === 1) {
+          note('Hmm? Let me fix that for you.');
+          hw.textContent = 'Jam 💕';
+          hw.classList.remove('no'); hw.classList.add('yes');
+          hw.onclick = () => correct('See? Every button says Jam 😌');
+        }
+      };
+    }
+
+    /* ── analysis & result ── */
+    const AN_STEPS = [
+      ['Analyzing your heart…', 12],
+      ['Measuring heartbeat… 128 bpm 📈', 31],
+      ['Detecting butterflies… found: many 🦋', 52],
+      ['Cross-checking with destiny…', 74],
+      ['Removing all traces of doubt…', 90],
+      ['Finalizing… 💘', 100],
+    ];
+
+    function startAnalysis() {
+      [...progress.children].forEach(p => p.className = 'p done');
+      setTimeout(() => {
+        quizScreen.classList.add('gone');
+        document.getElementById('resultScreen').classList.remove('gone');
+        const anText = document.getElementById('anText');
+        const anFill = document.getElementById('anFill');
+        let s = 0;
+        const step = () => {
+          if (s < AN_STEPS.length) {
+            anText.textContent = AN_STEPS[s][0];
+            anFill.style.width = AN_STEPS[s][1] + '%';
+            s++;
+            setTimeout(step, 950);
+          } else {
+            document.getElementById('analysisBox').style.display = 'none';
+            document.getElementById('resultCard').classList.add('show');
+            confettiRain();
+          }
+        };
+        step();
+      }, 700);
+    }
+
+    /* ── effects ── */
+    function burst() {
+      const pool = ['💕', '💗', '✨', '🤍'];
+      const r = qCard.getBoundingClientRect();
+      for (let k = 0; k < 5; k++) {
+        const p = document.createElement('span');
+        p.className = 'particle';
+        p.textContent = pool[Math.floor(Math.random() * pool.length)];
+        p.style.left = (r.left + r.width * (0.2 + Math.random() * 0.6)) + 'px';
+        p.style.top = (r.top + r.height * 0.5) + 'px';
+        p.style.animationDelay = (k * 0.07) + 's';
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 1500);
+      }
+    }
+
+    function confettiRain() {
+      const pool = ['💕', '💗', '💛', '🤍', '✨', '🎉', '🌸'];
+      for (let k = 0; k < 40; k++) {
+        setTimeout(() => {
+          const c = document.createElement('span');
+          c.className = 'confetti';
+          c.textContent = pool[Math.floor(Math.random() * pool.length)];
+          c.style.left = Math.random() * 100 + 'vw';
+          c.style.animationDuration = (2.2 + Math.random() * 2.5) + 's';
+          c.style.fontSize = (16 + Math.random() * 16) + 'px';
+          document.body.appendChild(c);
+          setTimeout(() => c.remove(), 5000);
+        }, k * 120);
+      }
+    }
+  </script>
+</body>
+</html>
