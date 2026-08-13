@@ -99,7 +99,7 @@
     'sp.celtic':   ['켈틱 크로스', 'Celtic Cross'],
     'sp.celtic.d': ['10장으로 보는 깊이 있는 전체 리딩', 'A deep 10-card reading of your whole situation'],
     't.shuffle':  ['카드를 섞는 중… 마음속으로 질문을 떠올려 보세요 🌙', 'Shuffling… hold your question in your mind 🌙'],
-    't.fanhint':  ['마음이 가는 카드를 눌러보세요', 'Tap a card that calls to you'],
+    't.fanhint':  ['좌우로 쓸어 부채를 돌리고, 마음이 가는 카드를 눌러보세요', 'Swipe to spin the fan, then tap a card that calls to you'],
     't.fanhint2': ['위의 카드를 누르면 확정! 부채꼴에서 다른 카드로 바꿀 수도 있어요', 'Tap the card above to confirm — or pick another from the fan'],
     't.reveal':   ['카드를 눌러 공개하세요', 'Tap a card to reveal it'],
     't.done':     ['리딩 완료 ✨', 'Reading complete ✨'],
@@ -855,39 +855,95 @@
     resetCandSlot();
 
     const fan = $('fan');
-    fan.innerHTML = '';
+    fan.innerHTML = '<div class="fan-wheel" id="fanWheel"></div>';
+    const wheel = $('fanWheel');
+    setFanRot(0);
     const n = 78;
     for (let i = 0; i < n; i++) {
       const c = document.createElement('div');
       c.className = 'fcard cback';
-      const ang = -62 + (124 / (n - 1)) * i;
-      const base = `translateX(-50%) rotate(${ang}deg) translateY(-268px)`;
-      c.style.transform = base;
-      c.dataset.base = base;
+      const ang = -FAN_MAX + (FAN_MAX * 2 / (n - 1)) * i;
+      c.style.transform = `rotate(${ang}deg) translateY(-${FAN_R}px)`;
       c.dataset.i = i;
-      fan.appendChild(c);
+      wheel.appendChild(c);
     }
-    const sc = document.querySelector('.fan-scroll');
-    sc.scrollLeft = (880 - sc.clientWidth) / 2;
   }
 
-  /* two-step picking: tapping the fan lifts a card OUT of it into the
+  /* the fan is a rotating WHEEL: a horizontal swipe rolls the whole arc
+     around its pivot (with a little inertia), so every card can be brought
+     to the comfortable center instead of scrolling a wide strip. A short
+     tap (no real movement) picks a card: the tap point is mapped by ANGLE
+     from the pivot — minus the current wheel rotation — to the nearest
+     available card, so the thin sliver cards are as easy to hit as the
+     wide middle ones (taps beyond the arc snap to the outermost card).
+
+     two-step picking: the tapped card lifts OUT of the fan into the
      upright preview slot at the top (its empty spot stays visible in the
-     fan); tapping the preview card confirms, tapping another fan card swaps.
-     Taps are mapped by ANGLE from the fan pivot to the nearest available
-     card, so the thin sliver cards at both edges are as easy to hit as the
-     wide middle ones (taps beyond the arc snap to the outermost card). */
-  $('fan').addEventListener('click', (e) => {
+     fan); tapping the preview card confirms, tapping another fan card swaps */
+  const FAN_R = 420, FAN_MAX = 62, FAN_PIVOT_Y = 590;
+  const DEG_PER_PX = 180 / (Math.PI * FAN_R); // wheel degrees per pixel of drag
+  let fanRot = 0;
+  let fanDrag = null;
+  let fanInertia = null;
+
+  function setFanRot(v) {
+    fanRot = Math.max(-FAN_MAX, Math.min(FAN_MAX, v));
+    const w = $('fanWheel');
+    if (w) w.style.transform = `rotate(${fanRot}deg)`;
+  }
+
+  $('fan').addEventListener('pointerdown', (e) => {
+    if (!$('fanWheel')) return;
+    cancelAnimationFrame(fanInertia);
+    fanDrag = { x0: e.clientX, lastX: e.clientX, lastT: performance.now(), rot0: fanRot, moved: false, v: 0 };
+    try { $('fan').setPointerCapture(e.pointerId); } catch {}
+  });
+  $('fan').addEventListener('pointermove', (e) => {
+    if (!fanDrag) return;
+    const dx = e.clientX - fanDrag.x0;
+    if (Math.abs(dx) > 6) fanDrag.moved = true;
+    if (!fanDrag.moved) return;
+    const now = performance.now();
+    const inst = (e.clientX - fanDrag.lastX) / Math.max(1, now - fanDrag.lastT); // px/ms
+    fanDrag.v = fanDrag.v * 0.7 + inst * 0.3;
+    fanDrag.lastX = e.clientX;
+    fanDrag.lastT = now;
+    setFanRot(fanDrag.rot0 + dx * DEG_PER_PX);
+  });
+  const endFanDrag = (e) => {
+    if (!fanDrag) return;
+    const drag = fanDrag;
+    fanDrag = null;
+    if (!drag.moved) { fanTapSelect(e); return; }
+    // inertia: keep spinning in deg/ms, decaying until it fades or hits an end
+    let v = drag.v * DEG_PER_PX;
+    let prev = performance.now();
+    const spin = (now) => {
+      const dt = now - prev;
+      prev = now;
+      setFanRot(fanRot + v * dt);
+      v *= Math.pow(0.94, dt / 16);
+      if (Math.abs(v) > 0.002 && fanRot > -FAN_MAX && fanRot < FAN_MAX) {
+        fanInertia = requestAnimationFrame(spin);
+      }
+    };
+    fanInertia = requestAnimationFrame(spin);
+  };
+  $('fan').addEventListener('pointerup', endFanDrag);
+  $('fan').addEventListener('pointercancel', () => { fanDrag = null; });
+
+  function fanTapSelect(e) {
     if (!tstate.spread || $('pickBox').style.display !== 'block') return;
     if (tstate.picks.length >= NEED[tstate.spread]) return;
     const rect = $('fan').getBoundingClientRect();
-    const x = e.clientX - rect.left - 440;   // fan pivot: (440, 445), cards at radius ~268
-    const y = 445 - (e.clientY - rect.top);
+    const x = e.clientX - rect.left - rect.width / 2;   // pivot: (center, FAN_PIVOT_Y)
+    const y = FAN_PIVOT_Y - (e.clientY - rect.top);
     const r = Math.hypot(x, y);
-    if (r < 160 || r > 400) return;
-    const deg = Math.max(-62, Math.min(62, Math.atan2(x, y) * 180 / Math.PI));
-    const idx = Math.round((deg + 62) / (124 / 77));
-    const cards = $('fan').children;
+    if (r < FAN_R - 90 || r > FAN_R + 90) return;
+    const deg = Math.max(-FAN_MAX, Math.min(FAN_MAX,
+      Math.atan2(x, y) * 180 / Math.PI - fanRot));
+    const idx = Math.round((deg + FAN_MAX) / (FAN_MAX * 2 / 77));
+    const cards = $('fanWheel').children;
     for (let d = 0; d < 78; d++) {
       for (const j of [idx - d, idx + d]) {
         const el = cards[j];
@@ -897,7 +953,7 @@
         }
       }
     }
-  });
+  }
 
   function selectCandidate(el) {
     if (candidate) candidate.classList.remove('away'); // put the old one back

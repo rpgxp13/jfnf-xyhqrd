@@ -278,31 +278,39 @@
       opacity: 0.85;
     }
 
-    /* fan */
+    /* fan — a rotating wheel: swipe left/right to roll the arc, tap to pick */
     .fan-scroll {
       width: 100%;
-      overflow-x: auto;
-      overflow-y: hidden;
-      -webkit-overflow-scrolling: touch;
+      overflow: hidden;
       padding: 10px 0 6px;
     }
     .fan {
       position: relative;
-      width: 880px;
+      width: 100%;
       height: 250px;
       margin: 0 auto;
+      touch-action: pan-y;   /* horizontal drags spin the fan, vertical still scrolls the page */
+      cursor: grab;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .fan-wheel {
+      position: absolute;
+      left: 50%;
+      top: 590px;            /* wheel pivot; cards hang 420px above it */
+      width: 0;
+      height: 0;
+      will-change: transform;
     }
     .fan .fcard {
       position: absolute;
-      left: 50%;
-      bottom: -240px;
+      left: -29px;           /* center the 58x90 card on the wheel origin */
+      top: -45px;
       width: 58px;
       height: 90px;
-      cursor: pointer;
-      transition: transform 0.22s cubic-bezier(0.34, 1.4, 0.64, 1), opacity 0.25s ease;
+      transition: opacity 0.25s ease;
     }
-    .fan .fcard:hover { filter: brightness(1.12); }
-    .fan .fcard.gone, .fan .fcard.away { opacity: 0; pointer-events: none; }
+    .fan .fcard.gone, .fan .fcard.away { opacity: 0; }
 
     /* candidate preview: the tapped card leaves the fan and sits here, upright */
     .cand-area {
