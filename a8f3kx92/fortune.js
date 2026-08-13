@@ -66,6 +66,9 @@
     'ov.saju': ['당신의 사주는 {il} 일간을 중심으로, 오행 가운데 {strong} 기운이 가장 도드라지고 {weak} 기운이 상대적으로 옅은 구성이에요. 도드라진 기운은 당신의 무기가 되고, 옅은 기운은 의식적으로 채워줄수록 삶의 균형이 좋아져요. 위의 풀이들을 하나의 이야기로 이어 읽으면, 지금 어떤 선택이 자연스러운지 감이 잡힐 거예요.',
       'Your chart centers on the day master {il}: among the five elements, {strong} shines strongest while {weak} runs relatively light. The strong element is your natural weapon, and consciously feeding the light one brings life into better balance. Read the sections above as one story, and the choices that feel natural right now will come into focus.'],
     'ai.loading': ['🤖 AI 상세 풀이를 준비하는 중…', '🤖 Preparing the AI reading…'],
+    'load.saju':  ['AI가 사주를 깊이 읽고 있어요…', 'The AI is reading your chart…'],
+    'load.tarot': ['AI가 카드의 이야기를 준비하고 있어요…', 'The AI is listening to your cards…'],
+    'load.sub':   ['잠시만 기다려 주세요 (10~20초)', 'Just a moment (10–20s)'],
     'yy.yang':     ['양 陽', 'Yang'],
     'yy.yin':      ['음 陰', 'Yin'],
     'd.now':       ['현재', 'now'],
@@ -279,6 +282,24 @@
     return llmPending.get(key);
   }
 
+  /* full-screen "AI is thinking" overlay, shown while a reading waits on
+     the proxy; always paired with a timeout race so a hung request can
+     never trap the user on the overlay */
+  const delay = (ms) => new Promise(r => setTimeout(r, ms));
+  const AI_WAIT_MS = 30000;
+  function showAiOverlay(key) {
+    $('aiOverlayMsg').textContent = t(key);
+    $('aiOverlaySub').textContent = t('load.sub');
+    $('aiOverlay').style.display = 'flex';
+  }
+  function hideAiOverlay() { $('aiOverlay').style.display = 'none'; }
+  async function waitAi(key, promise) {
+    if (!LLM_ENDPOINT) return;
+    showAiOverlay(key);
+    try { await Promise.race([promise, delay(AI_WAIT_MS)]); } catch {}
+    hideAiOverlay();
+  }
+
   const dataCache = {};
   async function loadJson(name) {
     if (!dataCache[name]) dataCache[name] = await (await fetch('./data/' + name + '.json')).json();
@@ -443,7 +464,9 @@
       };
       histSave(entry);
       lastSajuEntry = entry;
-      await renderSajuResult(entry);
+      const reading = await renderSajuResult(entry);
+      // hold on a loading screen until the AI reading lands (or times out)
+      if (!entry.ai) await waitAi('load.saju', reading.aiPromise);
       backOverride = null;
       show('v-saju-result');
     } catch (e) {
@@ -749,13 +772,14 @@
       status.textContent = t('ai.loading');
       status.style.display = 'block';
       reading.aiPromise.then(() => {
-        if (lastSajuEntry !== entry || currentView !== 'v-saju-result') return;
+        if (lastSajuEntry !== entry) return; // a different chart took over
         status.style.display = 'none';
         applyAi();
       });
     } else {
       status.style.display = 'none';
     }
+    return reading;
   }
 
   $('sjrAgain').addEventListener('click', () => { backOverride = null; show('v-saju-input'); });
@@ -1011,7 +1035,7 @@
     </div>`;
   }
 
-  function buildReveal() {
+  async function buildReveal() {
     $('pickBox').style.display = 'none';
     $('revealBox').style.display = 'block';
     $('revealTitle').textContent = t('t.reveal');
@@ -1035,9 +1059,13 @@
     setReady();
 
     // prefetch every AI reading in parallel now that the cards are fixed,
-    // so each reveal (and the overall note) doesn't wait on a live API call
-    tstate.picks.forEach((pk, i) => { fetchTarotAi(pk, i); });
-    fetchTarotOverall();
+    // holding a loading screen so each reveal (and the overall note) is
+    // instant instead of waiting on a live API call mid-flip
+    const jobs = tstate.picks.map((pk, i) => fetchTarotAi(pk, i));
+    jobs.push(fetchTarotOverall());
+    if (tstate.picks.some(pk => !pk.ai) || !tstate.overall) {
+      await waitAi('load.tarot', Promise.all(jobs));
+    }
   }
 
   function setReady() {
@@ -1253,7 +1281,10 @@
     const e = histList()[idx];
     if (!e) return;
     if (e.type === 'saju') {
-      await renderSajuResult(e);
+      const reading = await renderSajuResult(e);
+      // old entries saved before AI storage (or failed fetches) re-call the
+      // API once here — hold the loading screen, then histUpdate persists it
+      if (!e.ai) await waitAi('load.saju', reading.aiPromise);
       backOverride = 'v-history';
       show('v-saju-result');
     } else {
@@ -1283,7 +1314,13 @@
           </div></div></div>`;
       }).join('');
       renderTarotOverall();
-      e.picks.forEach((pk, i) => { fetchTarotAi(pk, i); }); // parallel, see rerenderTarotTexts
+      // parallel AI fetch for entries that predate AI storage; the loading
+      // screen holds until they land, then histUpdate persists them
+      const jobs = e.picks.map((pk, i) => fetchTarotAi(pk, i));
+      jobs.push(fetchTarotOverall());
+      if (e.picks.some(pk => !pk.ai) || !tstate.overall) {
+        await waitAi('load.tarot', Promise.all(jobs));
+      }
       $('readings').innerHTML = '';
       const gen = ++readingsGen;
       for (let i = 0; i < e.picks.length && gen === readingsGen; i++) await appendReading(i, gen);

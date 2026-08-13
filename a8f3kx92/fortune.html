@@ -194,6 +194,42 @@
     .radar-label tspan { font-weight: 800; }
     .ai-status { font-size: 12.5px; color: #8a7a63; font-weight: 600; margin-top: 10px; animation: aiPulse 1.6s ease-in-out infinite; }
     @keyframes aiPulse { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
+
+    /* full-screen overlay while waiting for the AI reading */
+    #aiOverlay {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      background: rgba(255, 250, 240, 0.88);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      text-align: center;
+      padding: 24px;
+    }
+    #aiOverlay .ai-ball { font-size: 58px; animation: ballFloat 2.2s ease-in-out infinite; filter: drop-shadow(0 6px 18px rgba(224, 112, 143, 0.35)); }
+    @keyframes ballFloat {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-12px) scale(1.06); }
+    }
+    #aiOverlay .ai-msg { font-size: 16.5px; font-weight: 800; color: #6b4a3a; }
+    #aiOverlay .ai-sub { font-size: 13px; font-weight: 600; color: #8a7a63; }
+    #aiOverlay .ai-dots { display: flex; gap: 7px; }
+    #aiOverlay .ai-dots span {
+      width: 9px; height: 9px; border-radius: 50%;
+      background: linear-gradient(135deg, #ffb6c9, #ffd9a0);
+      animation: dotHop 1.2s ease-in-out infinite;
+    }
+    #aiOverlay .ai-dots span:nth-child(2) { animation-delay: 0.15s; }
+    #aiOverlay .ai-dots span:nth-child(3) { animation-delay: 0.3s; }
+    @keyframes dotHop {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.55; }
+      30% { transform: translateY(-8px); opacity: 1; }
+    }
     .enote { font-size: 13.5px; line-height: 1.7; margin-top: 12px; background: #fdf6e9; border-radius: 12px; padding: 11px 13px; }
     .enote + .enote { margin-top: 8px; }
     .enote.ai { background: #f4edfd; }
@@ -727,6 +763,14 @@
       <div id="historyList"></div>
       <button class="h-clear" id="historyClear" data-i18n="h.clear">기록 전체 삭제</button>
     </div>
+  </div>
+
+  <!-- ═══ AI loading overlay ═══ -->
+  <div id="aiOverlay" style="display:none">
+    <div class="ai-ball">🔮</div>
+    <div class="ai-msg" id="aiOverlayMsg"></div>
+    <div class="ai-sub" id="aiOverlaySub"></div>
+    <div class="ai-dots"><span></span><span></span><span></span></div>
   </div>
 
   <script src="./fortune.js"></script>
