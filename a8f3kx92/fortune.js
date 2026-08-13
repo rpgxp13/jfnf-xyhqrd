@@ -370,10 +370,12 @@
     histPush(entry);
   }
 
+  /* ── history deletion disabled (kept for later) ──
   function histDelete(entry) {
     histWrite(histList().filter(e => !(e.ts === entry.ts && e.type === entry.type)));
     histApi('hist_delete', { ts: entry.ts });
   }
+  */
 
   /* one-time migration: records saved before sharing existed carry no
      _local flag — mark them all so the next sync pushes them to the store */
@@ -1338,10 +1340,10 @@
     const box = $('historyList');
     if (!list.length) {
       box.innerHTML = `<div class="h-empty">${t('h.empty')}</div>`;
-      $('historyClear').style.display = 'none';
+      // $('historyClear').style.display = 'none';   // deletion disabled
       return;
     }
-    $('historyClear').style.display = 'inline';
+    // $('historyClear').style.display = 'inline';   // deletion disabled
     box.innerHTML = '';
     list.forEach(e => {
       const b = document.createElement('button');
@@ -1352,6 +1354,7 @@
       } else {
         b.innerHTML = `<span class="hi">🃏</span><span><div class="ht">${t('h.tarot')} · ${t('topic.' + e.topic)}</div><div class="hd">${t('sp.' + e.spread)} · ${fmtTs(e.ts)}</div></span>`;
       }
+      /* ── per-entry delete button disabled (kept for later) ──
       const del = document.createElement('span');
       del.className = 'h-del';
       del.textContent = '✕';
@@ -1362,6 +1365,7 @@
         renderHistoryList(histList());
       });
       b.appendChild(del);
+      */
       b.addEventListener('click', () => openHistory(e));
       box.appendChild(b);
     });
@@ -1419,6 +1423,7 @@
     }
   }
 
+  /* ── delete-all disabled (kept for later) ──
   $('historyClear').addEventListener('click', () => {
     if (confirm(t('h.clear.confirm'))) {
       localStorage.removeItem(HKEY);
@@ -1426,6 +1431,7 @@
       renderHistoryList([]);
     }
   });
+  */
 
   /* init */
   applyStatic();

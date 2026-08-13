@@ -190,7 +190,8 @@ export const handler = async (event) => {
   }
 
   const { kind, payload } = body;
-  const KINDS = ["saju", "tarot", "tarot_overall", "hist_list", "hist_put", "hist_delete", "hist_clear"];
+  // hist_delete / hist_clear disabled for now (deletion feature commented out)
+  const KINDS = ["saju", "tarot", "tarot_overall", "hist_list", "hist_put"];
   const isHist = typeof kind === "string" && kind.startsWith("hist_");
   const maxBody = isHist ? 200000 : 20000; // history entries carry full bilingual AI text
   if (!KINDS.includes(kind) || !payload || (event.body || "").length > maxBody) {
@@ -223,6 +224,7 @@ export const handler = async (event) => {
         await ddb.send(new PutCommand({ TableName: HIST_TABLE, Item: { space, ts: entry.ts, entry } }));
         return { statusCode: 200, headers, body: JSON.stringify({ ok: true }) };
       }
+      /* ── deletion disabled (kept for later) ──
       if (kind === "hist_delete") {
         if (typeof payload.ts !== "number") {
           return { statusCode: 400, headers, body: JSON.stringify({ error: "invalid_entry" }) };
@@ -251,6 +253,8 @@ export const handler = async (event) => {
         }));
       }
       return { statusCode: 200, headers, body: JSON.stringify({ ok: true, deleted: keys.length }) };
+      */
+      return { statusCode: 400, headers, body: JSON.stringify({ error: "invalid_request" }) };
     } catch (err) {
       console.error("history error:", err?.message);
       return { statusCode: 502, headers, body: JSON.stringify({ error: "history_failed" }) };
