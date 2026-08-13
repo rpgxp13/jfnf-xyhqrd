@@ -1,0 +1,75 @@
+{
+  "ilgan": {
+    "甲": {
+      "title": "A tall tree growing straight",
+      "text": "As a Gap (Yang Wood) day master, you carry the spirit of a great tree — upright, proud, and steadily reaching upward. Once you set a goal, you grow toward it without wavering, and people naturally gather under your shade. Your principles can make you rigid, though; learning to bend with the wind keeps you from breaking. You shine brightest when starting something new."
+    },
+    "乙": {
+      "title": "A vine that winds and climbs",
+      "text": "As an Eul (Yin Wood) day master, you have the quiet, persistent vitality of grass and vines. You adapt to any environment and still find a way to bloom. You may look gentle, but your core is remarkably tough — you quietly get what you want. Your talents blossom fully when you have someone or something to lean on."
+    },
+    "丙": {
+      "title": "The sun that lights up everything",
+      "text": "As a Byeong (Yang Fire) day master, you radiate the bright, open energy of the sun. Your presence alone lifts the mood, and your honesty is your charm. Your passion flares up fast and can cool just as quickly, so anything that helps you stay consistent turns that fire into real achievement. You are most natural in the spotlight."
+    },
+    "丁": {
+      "title": "A candle that lights the dark",
+      "text": "As a Jeong (Yin Fire) day master, you glow like candlelight — warm, delicate, and devoted. Rather than dazzling a crowd, you quietly warm the people closest to you. Your sensitivity and intuition read hearts with uncanny accuracy. You tend to burn quietly inside, so having a way to express and share your feelings is essential."
+    },
+    "戊": {
+      "title": "A great mountain, steady in its place",
+      "text": "As a Mu (Yang Earth) day master, you carry the weight and reliability of a mountain. You have an unshakable center, and people naturally lean on you. You move at your own pace without rushing into change — a strength that can sometimes read as stubbornness. You truly shine as a mediator and a pillar of support."
+    },
+    "己": {
+      "title": "Fertile soil that nurtures life",
+      "text": "As a Gi (Yin Earth) day master, you are like a well-tended field — practical, thrifty, and nurturing. You quietly take care of things, and life somehow gets organized around you. You get along with all kinds of people, though you open your inner heart carefully. You find deep satisfaction in growing and completing things."
+    },
+    "庚": {
+      "title": "Forged iron, hard and true",
+      "text": "As a Gyeong (Yang Metal) day master, you have the firm, loyal nature of raw ore and forged steel. Your sense of right and wrong is clear, and you keep your bonds to the end with decisiveness and responsibility. Your directness can be misread, but behind it lies a heart hotter than anyone's. Like a sword that shines with polishing, you grow stronger with every trial."
+    },
+    "辛": {
+      "title": "A finely cut jewel",
+      "text": "As a Sin (Yin Metal) day master, you have the sharp, refined sensibility of a polished gem. Your aesthetic standards are high, and everything you touch gets finished with precision. Your pride runs deep and wounds cut deep too, but they become fuel for polishing yourself further. In an environment that appreciates you, your abilities multiply."
+    },
+    "壬": {
+      "title": "A great river that never stops",
+      "text": "As an Im (Yang Water) day master, you carry the vast, free-flowing energy of rivers and seas. Your wisdom and ideas never run dry, and your adaptability fits any vessel. Staying in one place makes you restless — you always need new currents and new learning. You excel at big-picture planning and strategy."
+    },
+    "癸": {
+      "title": "Spring rain that nourishes everything",
+      "text": "As a Gye (Yin Water) day master, you have the clear, delicate sensibility of dew and spring rain. You influence people quietly, seeping in and helping them grow. Your intuition and empathy read hearts like water finding its way. You may seem soft, but like dripping water that carves stone, your persistence gets you where you want to go."
+    }
+  },
+  "elements": {
+    "목": {
+      "en": "Wood",
+      "excess": "Wood is abundant in your chart. You have plenty of drive to start new things and grow, but projects can pile up — following through will make you unstoppable.",
+      "lack": "Wood is missing from your chart. Starting energy and flexible growth may feel scarce; keeping plants nearby, wearing green, and morning walks help recharge it."
+    },
+    "화": {
+      "en": "Fire",
+      "excess": "Fire burns bright in your chart. Passion and expressiveness give you presence anywhere, but the flame can flare — build in moments of rest.",
+      "lack": "Fire is missing from your chart. Expressing yourself may not come easily; soak up sunlight often and practice saying what you love out loud."
+    },
+    "토": {
+      "en": "Earth",
+      "excess": "Earth is thick in your chart. Prudence and stability are great strengths, but long deliberation can let chances slip — sometimes trust your gut and move.",
+      "lack": "Earth is missing from your chart. Holding your center and staying consistent may be hard; regular routines and tidying up are excellent medicine."
+    },
+    "금": {
+      "en": "Metal",
+      "excess": "Metal is sharply present in your chart. Decisiveness and precision are superb, but you can be hard on yourself and others — softening your words protects your bonds.",
+      "lack": "Metal is missing from your chart. Cutting things off and finishing may be a struggle; set deadlines on small tasks and practice completing them."
+    },
+    "수": {
+      "en": "Water",
+      "excess": "Water runs deep and wide in your chart. Wisdom and flexibility overflow, but overthinking can slow you down — make 'just half a step first' your motto.",
+      "lack": "Water is missing from your chart. Rest and flexible thinking may feel scarce; walks by the water, staying hydrated, and good sleep come first."
+    }
+  },
+  "balance": {
+    "balanced": "Your five elements are evenly spread. You can draw on different energies as situations demand — a well-balanced, all-around configuration that holds its own anywhere.",
+    "note": "The element chart shows the mix of energies in your eight characters (six, if birth time is unknown). More or less of an element isn't good or bad — it shows the direction of your character."
+  }
+}

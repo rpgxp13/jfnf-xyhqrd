@@ -34,8 +34,9 @@
       align-items: center;
       justify-content: space-between;
       margin-bottom: 16px;
+      gap: 8px;
     }
-    .top .nav-btn {
+    .nav-btn {
       appearance: none;
       border: none;
       background: rgba(255, 255, 255, 0.75);
@@ -49,7 +50,8 @@
       box-shadow: 0 3px 10px rgba(90, 70, 50, 0.10);
       text-decoration: none;
     }
-    .top .page-title { font-size: 17px; font-weight: 800; }
+    .top .page-title { font-size: 16px; font-weight: 800; flex: 1; text-align: center; }
+    .top .right { display: flex; gap: 6px; }
 
     .view { width: min(94vw, 460px); display: none; flex-direction: column; align-items: center; }
     .view.on { display: flex; animation: fadeIn 0.3s ease; }
@@ -105,10 +107,7 @@
       color: #5a4632;
       outline: none;
     }
-    .seg {
-      display: flex;
-      gap: 8px;
-    }
+    .seg { display: flex; gap: 8px; }
     .seg button {
       flex: 1;
       appearance: none;
@@ -185,7 +184,7 @@
     .ilgan-text { font-size: 14px; line-height: 1.75; margin-top: 12px; }
 
     .ebar-row { display: flex; align-items: center; gap: 8px; margin-top: 9px; }
-    .ebar-row .ename { width: 52px; font-size: 13px; font-weight: 700; }
+    .ebar-row .ename { width: 74px; font-size: 12.5px; font-weight: 700; }
     .ebar-row .etrack { flex: 1; height: 14px; background: rgba(90,70,50,0.08); border-radius: 999px; overflow: hidden; }
     .ebar-row .efill { height: 100%; border-radius: 999px; width: 0; transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1); }
     .ebar-row .ecnt { width: 20px; font-size: 12.5px; font-weight: 700; text-align: right; }
@@ -246,27 +245,32 @@
       overflow-x: auto;
       overflow-y: hidden;
       -webkit-overflow-scrolling: touch;
-      padding-bottom: 6px;
+      padding: 56px 0 6px;
     }
     .fan {
       position: relative;
-      width: 700px;
+      width: 880px;
       height: 250px;
       margin: 0 auto;
     }
     .fan .fcard {
       position: absolute;
       left: 50%;
-      bottom: -210px;
-      width: 46px;
-      height: 72px;
+      bottom: -240px;
+      width: 58px;
+      height: 90px;
       cursor: pointer;
-      transition: transform 0.18s ease, opacity 0.25s ease;
+      transition: transform 0.22s cubic-bezier(0.34, 1.4, 0.64, 1), opacity 0.25s ease;
     }
-    .fan .fcard:hover { filter: brightness(1.15); }
+    .fan .fcard:hover { filter: brightness(1.12); }
     .fan .fcard.gone { opacity: 0; pointer-events: none; }
-    .fan-hint { text-align: center; font-size: 13.5px; font-weight: 700; margin: 10px 0 4px; }
-    .fan-hint .kr { display: block; font-size: 11px; color: #8a7a63; font-weight: 600; }
+    .fan .fcard.cand {
+      z-index: 20;
+      filter: brightness(1.18) drop-shadow(0 0 12px rgba(255, 182, 201, 0.9));
+    }
+    .fan-hint { text-align: center; font-size: 13.5px; font-weight: 700; margin: 10px 0 4px; min-height: 20px; }
+    .fan-hint.cand-mode { color: #e0708f; }
+    .fan-count { text-align: center; font-size: 11px; color: #8a7a63; font-weight: 600; margin-bottom: 4px; }
 
     /* picked slots + reveal */
     .slots {
@@ -411,71 +415,74 @@
   <div class="top">
     <button class="nav-btn" id="backBtn">← Back</button>
     <div class="page-title" id="pageTitle">🔮 Fortune</div>
-    <a class="nav-btn" href="./index.html">🏠</a>
+    <div class="right">
+      <button class="nav-btn" id="langBtn">EN</button>
+      <a class="nav-btn" href="./index.html">🏠</a>
+    </div>
   </div>
 
   <!-- ═══ Select ═══ -->
   <div class="view on" id="v-select">
     <button class="pick-card" data-go="saju">
       <span class="big">📜</span>
-      <span><span class="t">사주풀이 · Saju</span>
-        <div class="d">생년월일시로 사주팔자를 세우고<br>일간과 오행의 기운을 읽어드려요</div></span>
+      <span><span class="t" data-i18n="sel.saju.t">사주풀이 · Saju</span>
+        <div class="d" data-i18n="sel.saju.d">생년월일시로 사주팔자를 세우고<br>일간과 오행의 기운을 읽어드려요</div></span>
     </button>
     <button class="pick-card" data-go="tarot">
       <span class="big">🃏</span>
-      <span><span class="t">타로점 · Tarot</span>
-        <div class="d">카드를 직접 섞고 뽑아서<br>지금 필요한 메시지를 확인해요</div></span>
+      <span><span class="t" data-i18n="sel.tarot.t">타로점 · Tarot</span>
+        <div class="d" data-i18n="sel.tarot.d">카드를 직접 섞고 뽑아서<br>지금 필요한 메시지를 확인해요</div></span>
     </button>
     <div class="link-row">
-      <button class="nav-btn" id="historyBtn">🕘 지난 기록 보기</button>
+      <button class="nav-btn" id="historyBtn" data-i18n="sel.history">🕘 지난 기록 보기</button>
     </div>
   </div>
 
   <!-- ═══ Saju input ═══ -->
   <div class="view" id="v-saju-input">
     <div class="card">
-      <h2>📜 사주 정보 입력</h2>
-      <div class="sub">생년월일과 태어난 시간을 알려주세요</div>
+      <h2 data-i18n="sj.title">📜 사주 정보 입력</h2>
+      <div class="sub" data-i18n="sj.sub">생년월일과 태어난 시간을 알려주세요</div>
       <div style="height:16px"></div>
 
       <div class="field">
-        <label>이름 (선택)</label>
-        <input type="text" id="sjName" maxlength="12" placeholder="기록에 표시할 이름">
+        <label data-i18n="f.name">이름 (선택)</label>
+        <input type="text" id="sjName" maxlength="12" data-i18n-ph="f.name.ph" placeholder="기록에 표시할 이름">
       </div>
 
       <div class="field">
-        <label>달력 기준</label>
+        <label data-i18n="f.cal">달력 기준</label>
         <div class="seg" id="calSeg">
-          <button class="sel" data-v="solar">양력</button>
-          <button data-v="lunar">음력</button>
+          <button class="sel" data-v="solar" data-i18n="f.solar">양력</button>
+          <button data-v="lunar" data-i18n="f.lunar">음력</button>
         </div>
         <label class="check-row" id="leapRow" style="display:none">
-          <input type="checkbox" id="sjLeap"> 윤달이에요
+          <input type="checkbox" id="sjLeap"> <span data-i18n="f.leap">윤달이에요</span>
         </label>
       </div>
 
       <div class="field">
-        <label>생년월일</label>
+        <label data-i18n="f.date">생년월일</label>
         <input type="date" id="sjDate" min="1900-01-01" max="2100-12-31">
       </div>
 
       <div class="field">
-        <label>태어난 시간</label>
+        <label data-i18n="f.time">태어난 시간</label>
         <input type="time" id="sjTime" value="12:00">
-        <label class="check-row"><input type="checkbox" id="sjNoTime"> 시간을 몰라요 (삼주로 풀이)</label>
+        <label class="check-row"><input type="checkbox" id="sjNoTime"> <span data-i18n="f.notime">시간을 몰라요 (삼주로 풀이)</span></label>
       </div>
 
       <div class="field">
-        <label>성별 (선택)</label>
+        <label data-i18n="f.gender">성별 (선택)</label>
         <div class="seg" id="genderSeg">
-          <button data-v="F">여성</button>
-          <button data-v="M">남성</button>
-          <button class="sel" data-v="">선택 안 함</button>
+          <button data-v="F" data-i18n="f.female">여성</button>
+          <button data-v="M" data-i18n="f.male">남성</button>
+          <button class="sel" data-v="" data-i18n="f.skip">선택 안 함</button>
         </div>
       </div>
 
-      <button class="cta" id="sjGo">사주 세우기 ✨</button>
-      <div class="loading-note" id="sjLoading" style="display:none">만세력을 불러오는 중…</div>
+      <button class="cta" id="sjGo" data-i18n="f.go">사주 세우기 ✨</button>
+      <div class="loading-note" id="sjLoading" style="display:none" data-i18n="f.loading">만세력을 불러오는 중…</div>
     </div>
   </div>
 
@@ -494,47 +501,47 @@
       <div class="ilgan-text" id="sjrIlganText"></div>
     </div>
     <div class="card">
-      <h2>오행 분포</h2>
+      <h2 data-i18n="r.elements">오행 분포</h2>
       <div id="sjrBars"></div>
       <div id="sjrNotes"></div>
     </div>
-    <div class="disclaimer">본 콘텐츠는 재미와 자기 성찰을 위한 것으로, 실제 미래를 예측하지 않습니다.</div>
+    <div class="disclaimer" data-i18n="disc">본 콘텐츠는 재미와 자기 성찰을 위한 것으로, 실제 미래를 예측하지 않습니다.</div>
     <div class="btn-row">
-      <button class="ghost" id="sjrAgain">다시 입력</button>
-      <button class="cta" style="flex:1" id="sjrHome">처음으로</button>
+      <button class="ghost" id="sjrAgain" data-i18n="r.again">다시 입력</button>
+      <button class="cta" style="flex:1" id="sjrHome" data-i18n="r.home">처음으로</button>
     </div>
   </div>
 
   <!-- ═══ Tarot: topic ═══ -->
   <div class="view" id="v-tarot-topic">
     <div class="card" style="text-align:center">
-      <h2>🃏 어떤 이야기가 궁금한가요?</h2>
-      <div class="sub">질문 주제를 골라주세요</div>
+      <h2 data-i18n="t.topic.title">🃏 어떤 이야기가 궁금한가요?</h2>
+      <div class="sub" data-i18n="t.topic.sub">질문 주제를 골라주세요</div>
     </div>
     <div class="topic-grid">
-      <button class="pick-card" data-topic="love"><span class="big">💞</span><span class="t">연애 · 관계</span></button>
-      <button class="pick-card" data-topic="work"><span class="big">💼</span><span class="t">일 · 커리어</span></button>
-      <button class="pick-card" data-topic="money"><span class="big">💰</span><span class="t">금전</span></button>
-      <button class="pick-card" data-topic="all"><span class="big">🌟</span><span class="t">종합</span></button>
+      <button class="pick-card" data-topic="love"><span class="big">💞</span><span class="t" data-i18n="topic.love">연애 · 관계</span></button>
+      <button class="pick-card" data-topic="work"><span class="big">💼</span><span class="t" data-i18n="topic.work">일 · 커리어</span></button>
+      <button class="pick-card" data-topic="money"><span class="big">💰</span><span class="t" data-i18n="topic.money">금전</span></button>
+      <button class="pick-card" data-topic="all"><span class="big">🌟</span><span class="t" data-i18n="topic.all">종합</span></button>
     </div>
   </div>
 
   <!-- ═══ Tarot: spread ═══ -->
   <div class="view" id="v-tarot-spread">
     <div class="card" style="text-align:center">
-      <h2>스프레드 선택</h2>
-      <div class="sub">몇 장을 뽑을까요?</div>
+      <h2 data-i18n="t.spread.title">스프레드 선택</h2>
+      <div class="sub" data-i18n="t.spread.sub">몇 장을 뽑을까요?</div>
     </div>
     <div class="spread-list" style="width:100%">
       <button class="pick-card" data-spread="one">
         <span class="big">🂠</span>
-        <span><span class="t">원 카드</span>
-          <div class="d">지금 가장 필요한 하나의 메시지</div></span>
+        <span><span class="t" data-i18n="sp.one">원 카드</span>
+          <div class="d" data-i18n="sp.one.d">지금 가장 필요한 하나의 메시지</div></span>
       </button>
       <button class="pick-card" data-spread="three">
         <span class="big">🂠🂠🂠</span>
-        <span><span class="t">쓰리 카드</span>
-          <div class="d">과거 · 현재 · 미래의 흐름 읽기</div></span>
+        <span><span class="t" data-i18n="sp.three">쓰리 카드</span>
+          <div class="d" data-i18n="sp.three.d">과거 · 현재 · 미래의 흐름 읽기</div></span>
       </button>
     </div>
   </div>
@@ -543,28 +550,29 @@
   <div class="view" id="v-tarot-table">
     <div class="card" id="shuffleBox">
       <div class="shuffle-stage" id="shuffleStage"></div>
-      <div class="shuffle-msg">카드를 섞는 중… 마음속으로 질문을 떠올려 보세요 🌙</div>
+      <div class="shuffle-msg" data-i18n="t.shuffle">카드를 섞는 중… 마음속으로 질문을 떠올려 보세요 🌙</div>
     </div>
 
     <div id="pickBox" style="display:none; width:100%">
       <div class="slots" id="pickSlots"></div>
-      <div class="fan-hint">마음이 가는 카드를 직접 골라주세요 <span class="kr" id="pickCount"></span></div>
-      <div class="card" style="padding:10px 6px">
+      <div class="fan-hint" id="fanHint"></div>
+      <div class="fan-count" id="pickCount"></div>
+      <div class="card" style="padding:0 6px 10px; overflow:hidden">
         <div class="fan-scroll"><div class="fan" id="fan"></div></div>
       </div>
     </div>
 
     <div id="revealBox" style="display:none; width:100%">
       <div class="card" style="text-align:center">
-        <h2 id="revealTitle">카드를 눌러 공개하세요</h2>
+        <h2 id="revealTitle"></h2>
         <div class="sub" id="revealSub"></div>
         <div class="slots" id="revealSlots" style="margin-top:14px"></div>
       </div>
       <div id="readings"></div>
-      <div class="disclaimer" id="tarotDisc" style="display:none">본 콘텐츠는 재미와 자기 성찰을 위한 것으로, 실제 미래를 예측하지 않습니다.</div>
+      <div class="disclaimer" id="tarotDisc" style="display:none" data-i18n="disc">본 콘텐츠는 재미와 자기 성찰을 위한 것으로, 실제 미래를 예측하지 않습니다.</div>
       <div class="btn-row" id="tarotDone" style="display:none">
-        <button class="ghost" id="trAgain">다시 뽑기</button>
-        <button class="cta" style="flex:1" id="trHome">처음으로</button>
+        <button class="ghost" id="trAgain" data-i18n="t.again">다시 뽑기</button>
+        <button class="cta" style="flex:1" id="trHome" data-i18n="r.home">처음으로</button>
       </div>
     </div>
   </div>
@@ -572,11 +580,11 @@
   <!-- ═══ History ═══ -->
   <div class="view" id="v-history">
     <div class="card">
-      <h2>🕘 지난 기록</h2>
-      <div class="sub">최근 30개까지 이 기기에 저장돼요</div>
+      <h2 data-i18n="h.title">🕘 지난 기록</h2>
+      <div class="sub" data-i18n="h.sub">최근 30개까지 이 기기에 저장돼요</div>
       <div style="height:12px"></div>
       <div id="historyList"></div>
-      <button class="h-clear" id="historyClear">기록 전체 삭제</button>
+      <button class="h-clear" id="historyClear" data-i18n="h.clear">기록 전체 삭제</button>
     </div>
   </div>
 
