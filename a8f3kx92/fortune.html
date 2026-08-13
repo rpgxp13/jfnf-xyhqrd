@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Fortune 🔮</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      min-height: 100%;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif;
+      background: linear-gradient(180deg, #bfe3f2 0%, #dff2ec 55%, #f6ecd9 100%);
+      color: #5a4632;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 18px 14px 44px;
+    }
+
+    /* ── Header ─────────────────────── */
+    .top {
+      width: min(94vw, 460px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .top .nav-btn {
+      appearance: none;
+      border: none;
+      background: rgba(255, 255, 255, 0.75);
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      color: #6b4a3a;
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(90, 70, 50, 0.10);
+      text-decoration: none;
+    }
+    .top .page-title { font-size: 17px; font-weight: 800; }
+
+    .view { width: min(94vw, 460px); display: none; flex-direction: column; align-items: center; }
+    .view.on { display: flex; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; } }
+
+    .card {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.82);
+      border-radius: 22px;
+      padding: 22px 20px;
+      box-shadow: 0 8px 26px rgba(90, 70, 50, 0.14);
+      margin-bottom: 14px;
+    }
+    .card h2 { font-size: 17px; margin-bottom: 4px; }
+    .card .sub { font-size: 12.5px; color: #8a7a63; }
+
+    /* ── Select screen ──────────────── */
+    .pick-card {
+      width: 100%;
+      border: none;
+      font-family: inherit;
+      text-align: left;
+      background: rgba(255, 255, 255, 0.82);
+      border-radius: 22px;
+      padding: 24px 22px;
+      box-shadow: 0 8px 26px rgba(90, 70, 50, 0.14);
+      margin-bottom: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: transform 0.15s ease;
+      color: #5a4632;
+    }
+    .pick-card:active { transform: scale(0.97); }
+    .pick-card .big { font-size: 40px; }
+    .pick-card .t { font-size: 18px; font-weight: 800; }
+    .pick-card .d { font-size: 12.5px; color: #8a7a63; margin-top: 3px; line-height: 1.5; }
+    .link-row { display: flex; gap: 10px; width: 100%; }
+    .link-row .nav-btn { flex: 1; text-align: center; padding: 12px; border-radius: 16px; font-size: 14px; }
+
+    /* ── Forms ──────────────────────── */
+    .field { margin-bottom: 14px; width: 100%; }
+    .field label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+    .field input[type=date], .field input[type=time], .field input[type=text] {
+      width: 100%;
+      font-family: inherit;
+      font-size: 15px;
+      padding: 11px 12px;
+      border-radius: 12px;
+      border: 1.5px solid #e8dcc8;
+      background: #fffdf8;
+      color: #5a4632;
+      outline: none;
+    }
+    .seg {
+      display: flex;
+      gap: 8px;
+    }
+    .seg button {
+      flex: 1;
+      appearance: none;
+      border: 1.5px solid #e8dcc8;
+      background: #fffdf8;
+      border-radius: 12px;
+      padding: 10px 6px;
+      font-family: inherit;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #8a7a63;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .seg button.sel {
+      background: linear-gradient(135deg, #ffb6c9, #ffd9a0);
+      border-color: transparent;
+      color: #6b4a3a;
+    }
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13.5px;
+      font-weight: 600;
+      margin-top: 8px;
+      cursor: pointer;
+    }
+    .check-row input { width: 17px; height: 17px; accent-color: #e0708f; }
+
+    .cta {
+      width: 100%;
+      appearance: none;
+      border: none;
+      border-radius: 16px;
+      padding: 14px;
+      background: linear-gradient(135deg, #ffb6c9, #ffd9a0);
+      color: #6b4a3a;
+      font-family: inherit;
+      font-size: 15.5px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(230, 120, 150, 0.3);
+      transition: transform 0.12s ease;
+      margin-top: 4px;
+    }
+    .cta:active { transform: scale(0.97); }
+    .cta:disabled { opacity: 0.5; }
+
+    /* ── Saju result ────────────────── */
+    .pillars {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .pillar {
+      background: #fdf6e9;
+      border-radius: 14px;
+      padding: 10px 4px 12px;
+      text-align: center;
+    }
+    .pillar .plabel { font-size: 11px; color: #8a7a63; font-weight: 700; margin-bottom: 6px; }
+    .pillar .hanja { font-size: 26px; font-weight: 700; line-height: 1.25; font-family: 'Malgun Gothic', serif; }
+    .pillar .read { font-size: 12.5px; font-weight: 700; margin-top: 5px; }
+    .pillar .els { font-size: 10px; color: #8a7a63; margin-top: 3px; }
+    .pillar.empty { opacity: 0.45; }
+    .pillar.empty .hanja { font-size: 18px; padding: 8px 0; }
+
+    .ilgan-head { display: flex; align-items: center; gap: 12px; }
+    .ilgan-head .sym { font-size: 38px; }
+    .ilgan-head .name { font-size: 17px; font-weight: 800; }
+    .ilgan-head .ttl { font-size: 12.5px; color: #8a7a63; margin-top: 2px; }
+    .ilgan-text { font-size: 14px; line-height: 1.75; margin-top: 12px; }
+
+    .ebar-row { display: flex; align-items: center; gap: 8px; margin-top: 9px; }
+    .ebar-row .ename { width: 52px; font-size: 13px; font-weight: 700; }
+    .ebar-row .etrack { flex: 1; height: 14px; background: rgba(90,70,50,0.08); border-radius: 999px; overflow: hidden; }
+    .ebar-row .efill { height: 100%; border-radius: 999px; width: 0; transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1); }
+    .ebar-row .ecnt { width: 20px; font-size: 12.5px; font-weight: 700; text-align: right; }
+    .enote { font-size: 13.5px; line-height: 1.7; margin-top: 12px; background: #fdf6e9; border-radius: 12px; padding: 11px 13px; }
+    .enote + .enote { margin-top: 8px; }
+
+    /* ── Tarot ──────────────────────── */
+    .topic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
+    .topic-grid .pick-card { flex-direction: column; text-align: center; gap: 6px; padding: 20px 10px; margin: 0; }
+    .spread-list .pick-card .big { font-size: 34px; }
+
+    /* shuffle */
+    .shuffle-stage {
+      position: relative;
+      width: 100%;
+      height: 220px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .shuffle-stage .scard {
+      position: absolute;
+      width: 74px;
+      height: 116px;
+      border-radius: 10px;
+      animation: riffle 0.5s ease-in-out infinite alternate;
+    }
+    @keyframes riffle {
+      from { transform: translateX(-46px) rotate(-9deg); }
+      to   { transform: translateX(46px)  rotate(9deg); }
+    }
+    .shuffle-msg { text-align: center; font-size: 14px; font-weight: 700; margin-top: 8px; }
+
+    /* card back pattern (shared) */
+    .cback {
+      background:
+        radial-gradient(circle at 50% 42%, rgba(255,255,255,0.16) 0 12%, transparent 13%),
+        linear-gradient(160deg, #3a2f55 0%, #59456e 55%, #7a5a74 100%);
+      border: 2px solid rgba(255, 255, 255, 0.45);
+      border-radius: 10px;
+      box-shadow: 0 3px 8px rgba(43, 36, 64, 0.35);
+      position: relative;
+    }
+    .cback::after {
+      content: '🤍';
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      opacity: 0.85;
+    }
+
+    /* fan */
+    .fan-scroll {
+      width: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 6px;
+    }
+    .fan {
+      position: relative;
+      width: 700px;
+      height: 250px;
+      margin: 0 auto;
+    }
+    .fan .fcard {
+      position: absolute;
+      left: 50%;
+      bottom: -210px;
+      width: 46px;
+      height: 72px;
+      cursor: pointer;
+      transition: transform 0.18s ease, opacity 0.25s ease;
+    }
+    .fan .fcard:hover { filter: brightness(1.15); }
+    .fan .fcard.gone { opacity: 0; pointer-events: none; }
+    .fan-hint { text-align: center; font-size: 13.5px; font-weight: 700; margin: 10px 0 4px; }
+    .fan-hint .kr { display: block; font-size: 11px; color: #8a7a63; font-weight: 600; }
+
+    /* picked slots + reveal */
+    .slots {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      width: 100%;
+      margin: 8px 0 4px;
+      flex-wrap: wrap;
+    }
+    .slot { text-align: center; }
+    .slot .pos { font-size: 12px; font-weight: 700; color: #8a7a63; margin-bottom: 6px; }
+    .tcard {
+      width: 96px;
+      height: 150px;
+      perspective: 700px;
+      cursor: default;
+      margin: 0 auto;
+    }
+    .tcard.ready { cursor: pointer; animation: readyPulse 1.4s ease-in-out infinite; }
+    @keyframes readyPulse {
+      0%, 100% { transform: translateY(0); }
+      50%      { transform: translateY(-6px); }
+    }
+    .tcard .tin {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 0.65s cubic-bezier(0.4, 0.1, 0.2, 1);
+    }
+    .tcard.flip .tin { transform: rotateY(180deg); }
+    .tcard .tback, .tcard .tfront {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      border-radius: 10px;
+    }
+    .tcard .tback::after { font-size: 26px; }
+    .tcard .tfront {
+      transform: rotateY(180deg);
+      background: #fffdf6;
+      border: 2px solid #e0c9a0;
+      box-shadow: 0 3px 10px rgba(90, 70, 50, 0.2);
+      overflow: hidden;
+    }
+    .tface {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 4px;
+    }
+    .tface .corner { position: absolute; top: 5px; left: 8px; font-size: 12px; font-weight: 800; color: #b08d55; }
+    .tface .suitmark { position: absolute; top: 5px; right: 8px; font-size: 11px; }
+    .tface .femoji { font-size: 34px; }
+    .tface .fko { font-size: 12px; font-weight: 800; margin-top: 6px; text-align: center; line-height: 1.2; }
+    .tface .fen { font-size: 8.5px; color: #8a7a63; margin-top: 2px; text-align: center; }
+    .tcard.rev .tface { transform: rotate(180deg); }
+    .rev-badge {
+      display: inline-block;
+      font-size: 10.5px;
+      font-weight: 800;
+      color: #fff;
+      background: #b98ab5;
+      border-radius: 999px;
+      padding: 2px 8px;
+      margin-left: 6px;
+      vertical-align: 2px;
+    }
+
+    .reading { width: 100%; }
+    .reading .r-pos { font-size: 12px; font-weight: 800; color: #b98ab5; }
+    .reading .r-name { font-size: 16px; font-weight: 800; margin-top: 2px; }
+    .reading .r-mean { font-size: 14px; line-height: 1.7; margin-top: 8px; }
+    .reading .r-topic {
+      font-size: 13.5px;
+      line-height: 1.65;
+      margin-top: 10px;
+      background: #fdf6e9;
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+    .reading .r-topic b { color: #c9764f; }
+
+    /* ── History ────────────────────── */
+    .h-item {
+      width: 100%;
+      border: none;
+      font-family: inherit;
+      text-align: left;
+      background: rgba(255, 255, 255, 0.82);
+      border-radius: 16px;
+      padding: 14px 16px;
+      box-shadow: 0 4px 14px rgba(90, 70, 50, 0.10);
+      margin-bottom: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #5a4632;
+    }
+    .h-item .hi { font-size: 24px; }
+    .h-item .ht { font-size: 14px; font-weight: 800; }
+    .h-item .hd { font-size: 11.5px; color: #8a7a63; margin-top: 2px; }
+    .h-empty { font-size: 13.5px; color: #8a7a63; text-align: center; padding: 30px 0; }
+    .h-clear { background: none; border: none; font-family: inherit; font-size: 12px; color: #b0a08a; text-decoration: underline; cursor: pointer; margin-top: 6px; }
+
+    .disclaimer {
+      width: 100%;
+      font-size: 11.5px;
+      color: #9c8c74;
+      text-align: center;
+      line-height: 1.6;
+      margin-top: 6px;
+    }
+
+    .btn-row { display: flex; gap: 10px; width: 100%; margin-top: 12px; }
+    .btn-row .cta { margin-top: 0; }
+    .btn-row .ghost {
+      flex: 1;
+      appearance: none;
+      border: none;
+      border-radius: 16px;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.75);
+      color: #6b4a3a;
+      font-family: inherit;
+      font-size: 14.5px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(90, 70, 50, 0.10);
+    }
+
+    .loading-note { font-size: 13px; color: #8a7a63; text-align: center; padding: 18px 0; }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <button class="nav-btn" id="backBtn">← Back</button>
+    <div class="page-title" id="pageTitle">🔮 Fortune</div>
+    <a class="nav-btn" href="./index.html">🏠</a>
+  </div>
+
+  <!-- ═══ Select ═══ -->
+  <div class="view on" id="v-select">
+    <button class="pick-card" data-go="saju">
+      <span class="big">📜</span>
+      <span><span class="t">사주풀이 · Saju</span>
+        <div class="d">생년월일시로 사주팔자를 세우고<br>일간과 오행의 기운을 읽어드려요</div></span>
+    </button>
+    <button class="pick-card" data-go="tarot">
+      <span class="big">🃏</span>
+      <span><span class="t">타로점 · Tarot</span>
+        <div class="d">카드를 직접 섞고 뽑아서<br>지금 필요한 메시지를 확인해요</div></span>
+    </button>
+    <div class="link-row">
+      <button class="nav-btn" id="historyBtn">🕘 지난 기록 보기</button>
+    </div>
+  </div>
+
+  <!-- ═══ Saju input ═══ -->
+  <div class="view" id="v-saju-input">
+    <div class="card">
+      <h2>📜 사주 정보 입력</h2>
+      <div class="sub">생년월일과 태어난 시간을 알려주세요</div>
+      <div style="height:16px"></div>
+
+      <div class="field">
+        <label>이름 (선택)</label>
+        <input type="text" id="sjName" maxlength="12" placeholder="기록에 표시할 이름">
+      </div>
+
+      <div class="field">
+        <label>달력 기준</label>
+        <div class="seg" id="calSeg">
+          <button class="sel" data-v="solar">양력</button>
+          <button data-v="lunar">음력</button>
+        </div>
+        <label class="check-row" id="leapRow" style="display:none">
+          <input type="checkbox" id="sjLeap"> 윤달이에요
+        </label>
+      </div>
+
+      <div class="field">
+        <label>생년월일</label>
+        <input type="date" id="sjDate" min="1900-01-01" max="2100-12-31">
+      </div>
+
+      <div class="field">
+        <label>태어난 시간</label>
+        <input type="time" id="sjTime" value="12:00">
+        <label class="check-row"><input type="checkbox" id="sjNoTime"> 시간을 몰라요 (삼주로 풀이)</label>
+      </div>
+
+      <div class="field">
+        <label>성별 (선택)</label>
+        <div class="seg" id="genderSeg">
+          <button data-v="F">여성</button>
+          <button data-v="M">남성</button>
+          <button class="sel" data-v="">선택 안 함</button>
+        </div>
+      </div>
+
+      <button class="cta" id="sjGo">사주 세우기 ✨</button>
+      <div class="loading-note" id="sjLoading" style="display:none">만세력을 불러오는 중…</div>
+    </div>
+  </div>
+
+  <!-- ═══ Saju result ═══ -->
+  <div class="view" id="v-saju-result">
+    <div class="card">
+      <h2 id="sjrTitle">사주 명식</h2>
+      <div class="sub" id="sjrSub"></div>
+      <div class="pillars" id="sjrPillars"></div>
+    </div>
+    <div class="card">
+      <div class="ilgan-head">
+        <span class="sym" id="sjrSym">🌳</span>
+        <span><div class="name" id="sjrIlganName"></div><div class="ttl" id="sjrIlganTitle"></div></span>
+      </div>
+      <div class="ilgan-text" id="sjrIlganText"></div>
+    </div>
+    <div class="card">
+      <h2>오행 분포</h2>
+      <div id="sjrBars"></div>
+      <div id="sjrNotes"></div>
+    </div>
+    <div class="disclaimer">본 콘텐츠는 재미와 자기 성찰을 위한 것으로, 실제 미래를 예측하지 않습니다.</div>
+    <div class="btn-row">
+      <button class="ghost" id="sjrAgain">다시 입력</button>
+      <button class="cta" style="flex:1" id="sjrHome">처음으로</button>
+    </div>
+  </div>
+
+  <!-- ═══ Tarot: topic ═══ -->
+  <div class="view" id="v-tarot-topic">
+    <div class="card" style="text-align:center">
+      <h2>🃏 어떤 이야기가 궁금한가요?</h2>
+      <div class="sub">질문 주제를 골라주세요</div>
+    </div>
+    <div class="topic-grid">
+      <button class="pick-card" data-topic="love"><span class="big">💞</span><span class="t">연애 · 관계</span></button>
+      <button class="pick-card" data-topic="work"><span class="big">💼</span><span class="t">일 · 커리어</span></button>
+      <button class="pick-card" data-topic="money"><span class="big">💰</span><span class="t">금전</span></button>
+      <button class="pick-card" data-topic="all"><span class="big">🌟</span><span class="t">종합</span></button>
+    </div>
+  </div>
+
+  <!-- ═══ Tarot: spread ═══ -->
+  <div class="view" id="v-tarot-spread">
+    <div class="card" style="text-align:center">
+      <h2>스프레드 선택</h2>
+      <div class="sub">몇 장을 뽑을까요?</div>
+    </div>
+    <div class="spread-list" style="width:100%">
+      <button class="pick-card" data-spread="one">
+        <span class="big">🂠</span>
+        <span><span class="t">원 카드</span>
+          <div class="d">지금 가장 필요한 하나의 메시지</div></span>
+      </button>
+      <button class="pick-card" data-spread="three">
+        <span class="big">🂠🂠🂠</span>
+        <span><span class="t">쓰리 카드</span>
+          <div class="d">과거 · 현재 · 미래의 흐름 읽기</div></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══ Tarot: table (shuffle → fan → reveal) ═══ -->
+  <div class="view" id="v-tarot-table">
+    <div class="card" id="shuffleBox">
+      <div class="shuffle-stage" id="shuffleStage"></div>
+      <div class="shuffle-msg">카드를 섞는 중… 마음속으로 질문을 떠올려 보세요 🌙</div>
+    </div>
+
+    <div id="pickBox" style="display:none; width:100%">
+      <div class="slots" id="pickSlots"></div>
+      <div class="fan-hint">마음이 가는 카드를 직접 골라주세요 <span class="kr" id="pickCount"></span></div>
+      <div class="card" style="padding:10px 6px">
+        <div class="fan-scroll"><div class="fan" id="fan"></div></div>
+      </div>
+    </div>
+
+    <div id="revealBox" style="display:none; width:100%">
+      <div class="card" style="text-align:center">
+        <h2 id="revealTitle">카드를 눌러 공개하세요</h2>
+        <div class="sub" id="revealSub"></div>
+        <div class="slots" id="revealSlots" style="margin-top:14px"></div>
+      </div>
+      <div id="readings"></div>
+      <div class="disclaimer" id="tarotDisc" style="display:none">본 콘텐츠는 재미와 자기 성찰을 위한 것으로, 실제 미래를 예측하지 않습니다.</div>
+      <div class="btn-row" id="tarotDone" style="display:none">
+        <button class="ghost" id="trAgain">다시 뽑기</button>
+        <button class="cta" style="flex:1" id="trHome">처음으로</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ History ═══ -->
+  <div class="view" id="v-history">
+    <div class="card">
+      <h2>🕘 지난 기록</h2>
+      <div class="sub">최근 30개까지 이 기기에 저장돼요</div>
+      <div style="height:12px"></div>
+      <div id="historyList"></div>
+      <button class="h-clear" id="historyClear">기록 전체 삭제</button>
+    </div>
+  </div>
+
+  <script src="./fortune.js"></script>
+</body>
+</html>
