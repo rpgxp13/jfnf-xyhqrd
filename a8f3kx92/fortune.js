@@ -74,7 +74,7 @@
     'sp.three.d': ['과거 · 현재 · 미래의 흐름 읽기', 'Past · Present · Future flow'],
     't.shuffle':  ['카드를 섞는 중… 마음속으로 질문을 떠올려 보세요 🌙', 'Shuffling… hold your question in your mind 🌙'],
     't.fanhint':  ['마음이 가는 카드를 눌러보세요', 'Tap a card that calls to you'],
-    't.fanhint2': ['한 번 더 누르면 이 카드로 확정! 다른 카드를 눌러 바꿀 수도 있어요', 'Tap it again to confirm — or tap another card to change'],
+    't.fanhint2': ['위의 카드를 누르면 확정! 부채꼴에서 다른 카드로 바꿀 수도 있어요', 'Tap the card above to confirm — or pick another from the fan'],
     't.reveal':   ['카드를 눌러 공개하세요', 'Tap a card to reveal it'],
     't.done':     ['리딩 완료 ✨', 'Reading complete ✨'],
     't.replay':   ['지난 리딩 다시 보기', 'Reading from your history'],
@@ -493,6 +493,10 @@
     $('fanHint').textContent = t('t.fanhint');
   }
 
+  function resetCandSlot() {
+    $('candSlot').innerHTML = '<span class="qm">?</span>';
+  }
+
   function buildFan() {
     $('shuffleBox').style.display = 'none';
     $('pickBox').style.display = 'block';
@@ -503,6 +507,7 @@
     ).join('');
     $('pickCount').textContent = `0 / ${need}`;
     fanHintDefault();
+    resetCandSlot();
 
     const fan = $('fan');
     fan.innerHTML = '';
@@ -522,23 +527,25 @@
     sc.scrollLeft = (880 - sc.clientWidth) / 2;
   }
 
-  /* two-tap picking: first tap raises the card as a candidate,
-     second tap on the same card confirms it */
+  /* two-step picking: tapping a fan card lifts it OUT of the fan into the
+     upright preview slot at the top (its empty spot stays visible in the
+     fan); tapping the preview card confirms, tapping another fan card swaps */
   function onFanTap(e) {
     const need = tstate.spread === 'one' ? 1 : 3;
     if (tstate.picks.length >= need) return;
     const el = e.currentTarget;
-    if (el.classList.contains('gone')) return;
+    if (el.classList.contains('gone') || el.classList.contains('away')) return;
 
-    if (candidate === el) { confirmPick(el); return; }
-
-    if (candidate) {
-      candidate.classList.remove('cand');
-      candidate.style.transform = candidate.dataset.base;
-    }
+    if (candidate) candidate.classList.remove('away'); // put the old one back
     candidate = el;
-    el.classList.add('cand');
-    el.style.transform = el.dataset.base + ' translateY(-46px) scale(1.45)';
+    el.classList.add('away');
+
+    const slot = $('candSlot');
+    slot.innerHTML = '<div class="cand-card cback"></div>';
+    slot.querySelector('.cand-card').addEventListener('click', () => {
+      if (candidate) confirmPick(candidate);
+    });
+
     $('fanHint').classList.add('cand-mode');
     $('fanHint').textContent = t('t.fanhint2');
   }
@@ -546,8 +553,9 @@
   function confirmPick(el) {
     const need = tstate.spread === 'one' ? 1 : 3;
     candidate = null;
-    el.classList.remove('cand');
     el.classList.add('gone');
+    el.classList.remove('away');
+    resetCandSlot();
     fanHintDefault();
 
     const cardId = tstate.deck[Number(el.dataset.i)];
