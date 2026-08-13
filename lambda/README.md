@@ -5,26 +5,27 @@ API 키는 Lambda 환경변수에만 저장되고 브라우저에 노출되지 �
 
 ## ✅ 현재 배포 상태 (2026-08-13)
 
-이미 배포 완료되어 페이지에 연결돼 있습니다:
+배포 완료 + **API 키 설정 완료** — AI 풀이가 실제로 동작 중입니다:
 
 - 함수: `fortune-llm-proxy` (ap-northeast-2, Node.js 22, arm64)
 - 엔드포인트: `https://bzgjaonngg.execute-api.ap-northeast-2.amazonaws.com/` (API Gateway HTTP API `bzgjaonngg`)
   - ※ Lambda Function URL은 이 계정에서 익명 호출이 403으로 차단되어 API Gateway를 사용함
 - `fortune.js`의 `LLM_ENDPOINT`에 연결됨
 
-**남은 한 가지 — API 키 설정** (키는 직접 넣어주세요):
+## 요청/응답 형식 (모두 한국어+영어 동시 생성)
 
-```bash
-aws lambda update-function-configuration --function-name fortune-llm-proxy --environment "Variables={ANTHROPIC_API_KEY=sk-ant-여기에_키,MODEL=claude-opus-5,EFFORT=low}"
-```
+한 번의 호출로 두 언어를 모두 반환하며, 페이지는 결과를 localStorage 히스토리에 저장해
+KR/EN 전환 시 API를 다시 부르지 않습니다.
 
-키를 설정하기 전까지는 상세 풀이 호출이 조용히 실패하고 정적 풀이만 표시됩니다 (페이지는 정상 동작).
-설정 후 아래 "테스트" 섹션의 curl로 확인하세요.
+- 사주: `{ kind: "saju", payload: { ..., sections: ["overall"] } }` →
+  `{ "sections": { "ko": {...}, "en": {...} } }`
+  - 전체 섹션: personality / wealth / love / forecast / overall
+  - **주의**: API Gateway 통합 제한이 30초라 5개 섹션을 한 번에 생성하면 타임아웃(503).
+    그래서 페이지는 `payload.sections`로 섹션을 1개씩 나눠 5개 요청을 병렬로 보냄 (개당 ~15-20초)
+- 타로 카드: `{ kind: "tarot", payload: {...} }` → `{ "text": { "ko": "...", "en": "..." } }`
+- 타로 총평: `{ kind: "tarot_overall", payload: { topic, spread, cards: [...] } }` → `{ "text": { "ko", "en" } }`
 
-## 응답 형식
-
-- 사주: `{ "sections": { "personality", "wealth", "love", "forecast" } }` — 구조화 출력(json_schema)으로 보장
-- 타로: `{ "text": "..." }`
+모두 구조화 출력(json_schema)으로 형식이 보장됩니다.
 
 ---
 

@@ -183,22 +183,31 @@
     .ilgan-head .ttl { font-size: 12.5px; color: #8a7a63; margin-top: 2px; }
     .ilgan-text { font-size: 14px; line-height: 1.75; margin-top: 12px; }
 
-    .ebar-row { display: flex; align-items: center; gap: 8px; margin-top: 9px; }
-    .ebar-row .ename { width: 74px; font-size: 12.5px; font-weight: 700; }
-    .ebar-row .etrack { flex: 1; height: 14px; background: rgba(90,70,50,0.08); border-radius: 999px; overflow: hidden; }
-    .ebar-row .efill { height: 100%; border-radius: 999px; width: 0; transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1); }
-    .ebar-row .ecnt { width: 20px; font-size: 12.5px; font-weight: 700; text-align: right; }
+    /* five-element pentagon radar */
+    .radar { display: block; width: min(100%, 280px); margin: 4px auto 0; }
+    .radar-bg { fill: rgba(90,70,50,0.05); stroke: rgba(90,70,50,0.18); stroke-width: 1; }
+    .radar-ring { fill: none; stroke: rgba(90,70,50,0.12); stroke-width: 1; }
+    .radar-value polygon { fill: rgba(224,112,143,0.26); stroke: #e0708f; stroke-width: 2; stroke-linejoin: round; }
+    .radar-value { transform-origin: 150px 122px; animation: radarIn 0.9s cubic-bezier(0.22, 1, 0.36, 1); }
+    @keyframes radarIn { from { transform: scale(0.15); opacity: 0; } }
+    .radar-label { font-size: 12px; font-weight: 700; fill: #6b4a3a; text-anchor: middle; font-family: inherit; }
+    .radar-label tspan { font-weight: 800; }
+    .ai-status { font-size: 12.5px; color: #8a7a63; font-weight: 600; margin-top: 10px; animation: aiPulse 1.6s ease-in-out infinite; }
+    @keyframes aiPulse { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
     .enote { font-size: 13.5px; line-height: 1.7; margin-top: 12px; background: #fdf6e9; border-radius: 12px; padding: 11px 13px; }
     .enote + .enote { margin-top: 8px; }
     .enote.ai { background: #f4edfd; }
 
     /* yin-yang balance bar */
     .yy-row { display: flex; align-items: center; gap: 8px; margin: 10px 0 4px; }
-    .yy-row .yy-label { font-size: 12.5px; font-weight: 700; width: 52px; }
-    .yy-track { flex: 1; height: 16px; border-radius: 999px; overflow: hidden; display: flex; background: rgba(90,70,50,0.08); }
+    .yy-row .yy-label { font-size: 12.5px; font-weight: 700; white-space: nowrap; }
+    .yy-track { flex: 1; height: 18px; border-radius: 999px; overflow: hidden; display: flex; background: rgba(90,70,50,0.08); }
     .yy-track .yy-yang { background: linear-gradient(90deg, #f6b46a, #ef8f5e); height: 100%; transition: width 0.8s cubic-bezier(0.22,1,0.36,1); }
     .yy-track .yy-yin  { background: linear-gradient(90deg, #7d9bc4, #5d7bab); height: 100%; transition: width 0.8s cubic-bezier(0.22,1,0.36,1); }
-    .yy-cnt { font-size: 12px; font-weight: 700; }
+    .yy-track .yy-yang, .yy-track .yy-yin {
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 11px; font-weight: 800;
+    }
 
     /* daeun (10-year luck) chips */
     .daeun-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 12px; padding-bottom: 6px; }
@@ -610,6 +619,11 @@
       <h2 data-i18n="r.forecast">연간 · 월간 운세</h2>
       <div class="sec-body" id="sjrForecast"></div>
     </div>
+    <div class="card">
+      <h2 data-i18n="r.overall">🌟 총평</h2>
+      <div class="sec-body" id="sjrOverall"></div>
+      <div class="ai-status" id="sjrAiStatus" style="display:none"></div>
+    </div>
     <div class="disclaimer" data-i18n="disc">본 콘텐츠는 재미와 자기 성찰을 위한 것으로, 실제 미래를 예측하지 않습니다.</div>
     <div class="btn-row">
       <button class="ghost" id="sjrAgain" data-i18n="r.again">다시 입력</button>
@@ -682,6 +696,12 @@
         <div class="slots" id="revealSlots" style="margin-top:14px"></div>
       </div>
       <div id="readings"></div>
+      <div class="card reading" id="tarotOverallCard" style="display:none">
+        <div class="r-pos" id="tarotOverallTitle"></div>
+        <div class="r-mean" id="tarotOverallText"></div>
+        <div id="tarotOverallAi"></div>
+        <div class="ai-status" id="tarotAiStatus" style="display:none"></div>
+      </div>
       <div class="disclaimer" id="tarotDisc" style="display:none" data-i18n="disc">본 콘텐츠는 재미와 자기 성찰을 위한 것으로, 실제 미래를 예측하지 않습니다.</div>
       <div class="btn-row" id="tarotDone" style="display:none">
         <button class="ghost" id="trAgain" data-i18n="t.again">다시 뽑기</button>

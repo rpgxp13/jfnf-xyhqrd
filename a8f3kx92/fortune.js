@@ -62,6 +62,10 @@
     'r.wealth':    ['재물운', 'Wealth Luck'],
     'r.love':      ['애정 및 궁합', 'Love & Compatibility'],
     'r.forecast':  ['연간 · 월간 운세', 'Yearly · Monthly Fortune'],
+    'r.overall':   ['🌟 총평 · 종합 해설', '🌟 Overall Reading'],
+    'ov.saju': ['당신의 사주는 {il} 일간을 중심으로, 오행 가운데 {strong} 기운이 가장 도드라지고 {weak} 기운이 상대적으로 옅은 구성이에요. 도드라진 기운은 당신의 무기가 되고, 옅은 기운은 의식적으로 채워줄수록 삶의 균형이 좋아져요. 위의 풀이들을 하나의 이야기로 이어 읽으면, 지금 어떤 선택이 자연스러운지 감이 잡힐 거예요.',
+      'Your chart centers on the day master {il}: among the five elements, {strong} shines strongest while {weak} runs relatively light. The strong element is your natural weapon, and consciously feeding the light one brings life into better balance. Read the sections above as one story, and the choices that feel natural right now will come into focus.'],
+    'ai.loading': ['🤖 AI 상세 풀이를 준비하는 중…', '🤖 Preparing the AI reading…'],
     'yy.yang':     ['양 陽', 'Yang'],
     'yy.yin':      ['음 陰', 'Yin'],
     'd.now':       ['현재', 'now'],
@@ -116,6 +120,15 @@
     'pos.c9':  ['희망과 두려움', 'Hopes & fears'],
     'pos.c10': ['최종 결과', 'Outcome'],
     'rev.badge':   ['역방향', 'Reversed'],
+    't.overall': ['🌟 총평', '🌟 Overall'],
+    'ov.base': ['이번 {sp} 리딩을 종합해 보면 — {major} {rev} 카드가 남긴 장면들을 천천히 되짚어 보면, 지금 마음이 어디로 향하는지 조금 더 선명해질 거예요.',
+      'Looking at this {sp} reading as a whole — {major} {rev} Sit with the scenes the cards left behind, and where your heart wants to go will come into focus.'],
+    'ov.major.many': ['메이저 카드가 여러 장 나와 인생의 큰 흐름이 움직이는 시기임을 보여줘요.', 'Several Major Arcana appeared — a sign that life’s bigger currents are on the move.'],
+    'ov.major.some': ['메이저 카드가 함께 나와 중요한 메시지에 힘이 실려 있어요.', 'A Major Arcana card adds weight to the message.'],
+    'ov.major.none': ['메이저 카드 없이 흘러가, 일상의 작은 선택들이 열쇠가 되는 시기예요.', 'With no Major Arcana, small everyday choices hold the key right now.'],
+    'ov.rev.none': ['역방향 카드가 없어 에너지가 순하게 흐르고 있어요.', 'No reversed cards — the energy is flowing gently.'],
+    'ov.rev.some': ['역방향 카드는 그 자리를 조금 더 섬세하게 살펴보라는 힌트예요.', 'The reversed card is a hint to look at that spot more tenderly.'],
+    'ov.rev.many': ['역방향이 많아 잠시 멈춰 돌아보라는 신호가 함께 왔어요.', 'Many reversals came together — a sign to pause and look back for a moment.'],
 
     'h.title': ['🕘 지난 기록', '🕘 Past readings'],
     'h.sub':   ['최근 30개까지 이 기기에 저장돼요', 'Up to 30 entries, stored on this device'],
@@ -236,9 +249,11 @@
 
   /* ═══════════ LLM integration (AWS Lambda proxy) ═══════════
      Deployed via API Gateway → Lambda "fortune-llm-proxy" (ap-northeast-2),
-     see lambda/README.md. Receives { kind: 'saju'|'tarot', lang, payload }
-     and returns { sections } (saju) / { text } (tarot). On any failure the
-     static JSON templates below are used as-is, so the page always works. */
+     see lambda/README.md. Receives { kind: 'saju'|'tarot', payload } and
+     returns BOTH languages at once — { sections: {ko,en} } (saju) /
+     { text: {ko,en} } (tarot) — which are stored on the history entry so
+     switching KR/EN never re-calls the API. On any failure the static JSON
+     templates below are used as-is, so the page always works. */
   const LLM_ENDPOINT = 'https://bzgjaonngg.execute-api.ap-northeast-2.amazonaws.com/';
 
   async function llmReading(kind, payload) {
@@ -247,11 +262,21 @@
       const r = await fetch(LLM_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ kind, lang, payload }),
+        body: JSON.stringify({ kind, payload }),
       });
       if (!r.ok) return null;
-      return await r.json(); // { text } for tarot, { sections } for saju
+      return await r.json(); // { text: {ko,en} } for tarot, { sections: {ko,en} } for saju
     } catch { return null; }
+  }
+
+  /* dedup concurrent LLM fetches (e.g. a language toggle while one is
+     already in flight) — keyed by the entry/pick object identity */
+  const llmPending = new Map();
+  function llmOnce(key, fn) {
+    if (!llmPending.has(key)) {
+      llmPending.set(key, fn().finally(() => llmPending.delete(key)));
+    }
+    return llmPending.get(key);
   }
 
   const dataCache = {};
@@ -273,6 +298,14 @@
     const list = histList();
     list.unshift(entry);
     if (list.length > 30) list.length = 30;
+    try { localStorage.setItem(HKEY, JSON.stringify(list)); } catch {}
+  }
+  /* re-persist an entry after it gained AI text (matched by timestamp+type) */
+  function histUpdate(entry) {
+    const list = histList();
+    const i = list.findIndex(e => e.ts === entry.ts && e.type === entry.type);
+    if (i < 0) return;
+    list[i] = entry;
     try { localStorage.setItem(HKEY, JSON.stringify(list)); } catch {}
   }
   function fmtTs(ts) {
@@ -537,20 +570,51 @@
     const yearText = tf2('f.yearFmt', { gz: gzLabel(yearGZ), t: T.flow[relationOf(dayEl, GAN_EL[yearGZ[0]])] });
     const monthText = tf2('f.monthFmt', { gz: gzLabel(monthGZ), t: T.flow[relationOf(dayEl, GAN_EL[monthGZ[0]])] });
 
-    // detailed AI reading when a backend is configured (no-op otherwise)
-    const llmBody = await llmReading('saju', {
-      pillars, counts,
-      yinYang: yy,
-      daeun: entry.daeun || null,
-      current: { yearGZ, monthGZ },
-      name: entry.name || null,
-      gender: entry.gender || null,
-      birth: describeBirth(entry),
-    });
-    const llm = llmBody && (llmBody.sections || (llmBody.text ? { personality: llmBody.text } : null));
+    // detailed AI reading when a backend is configured (no-op otherwise);
+    // fetched once — WITHOUT blocking the static render — with BOTH languages
+    // at once, then stored on the history entry so a KR/EN toggle just
+    // re-reads entry.ai without another API call. The five sections are
+    // requested as parallel single-section calls because API Gateway caps
+    // each request at 30s — one big call doesn't fit, five small ones do.
+    let aiPromise = Promise.resolve();
+    if (!entry.ai) {
+      const basePayload = {
+        pillars, counts,
+        yinYang: yy,
+        daeun: entry.daeun || null,
+        current: { yearGZ, monthGZ },
+        name: entry.name || null,
+        gender: entry.gender || null,
+        birth: describeBirth(entry),
+      };
+      const SECTIONS = ['personality', 'wealth', 'love', 'forecast', 'overall'];
+      aiPromise = llmOnce(entry, () => Promise.all(
+        SECTIONS.map(s => llmReading('saju', { ...basePayload, sections: [s] }))
+      )).then(parts => {
+        const merged = { ko: {}, en: {} };
+        let ok = 0;
+        (parts || []).forEach(p => {
+          const sec = p && p.sections;
+          if (sec && sec.ko && sec.en) {
+            Object.assign(merged.ko, sec.ko);
+            Object.assign(merged.en, sec.en);
+            ok++;
+          }
+        });
+        if (ok === SECTIONS.length) { // store only complete readings
+          entry.ai = merged;
+          histUpdate(entry);
+        }
+      });
+    }
+
+    // overall: strongest / weakest element synthesis (static fallback)
+    const sorted = [...EL_ORDER].sort((a, b) => counts[b] - counts[a]);
+    const ilLabel = lang === 'ko' ? `${base.hanja}(${base.ko})` : `${GAN_ROMA[dayGan]} (${GAN_EN_DESC[dayGan]})`;
+    const overallText = tf2('ov.saju', { il: ilLabel, strong: elName(sorted[0]), weak: elName(sorted[4]) });
 
     return {
-      ilgan, counts, total, notes, llm,
+      ilgan, counts, total, notes, aiPromise, overallText,
       yy, yyText,
       aptText: T.aptitude[dayGan],
       wealthText, loveText, yearText, monthText,
@@ -567,6 +631,39 @@
   }
 
   /* ═══════════ saju: result rendering ═══════════ */
+  /* pentagon radar chart of the five-element distribution; EL_ORDER follows
+     the generating cycle (목→화→토→금→수), so adjacent vertices feed each other */
+  function radarSvg(reading) {
+    const CX = 150, CY = 122, R = 80;
+    const max = Math.max(3, ...EL_ORDER.map(el => reading.counts[el]));
+    const pt = (i, r) => {
+      const a = -Math.PI / 2 + i * 2 * Math.PI / 5;
+      return [CX + r * Math.cos(a), CY + r * Math.sin(a)];
+    };
+    const poly = (r) => EL_ORDER.map((_, i) => pt(i, r).map(v => v.toFixed(1)).join(',')).join(' ');
+    const valPts = EL_ORDER.map((el, i) => pt(i, Math.max(reading.counts[el] / max, 0.07) * R));
+    const rings = [2 / 3, 1 / 3].map(f => `<polygon class="radar-ring" points="${poly(R * f)}"/>`).join('');
+    const spokes = EL_ORDER.map((_, i) => {
+      const [x, y] = pt(i, R);
+      return `<line class="radar-ring" x1="${CX}" y1="${CY}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}"/>`;
+    }).join('');
+    const dots = valPts.map(([x, y], i) =>
+      `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.5" fill="${reading.colors[EL_ORDER[i]]}" stroke="#fff" stroke-width="1.6"/>`).join('');
+    const labels = EL_ORDER.map((el, i) => {
+      const [x, y] = pt(i, R + 24);
+      return `<text class="radar-label" x="${x.toFixed(1)}" y="${(y + 4).toFixed(1)}">${reading.emojis[el]} ${elName(el)} <tspan fill="${reading.colors[el]}">${reading.counts[el]}</tspan></text>`;
+    }).join('');
+    return `<svg class="radar" viewBox="0 0 300 230" role="img">
+      <polygon class="radar-bg" points="${poly(R)}"/>
+      ${rings}${spokes}
+      <g class="radar-value">
+        <polygon points="${valPts.map(p => p.map(v => v.toFixed(1)).join(',')).join(' ')}"/>
+        ${dots}
+      </g>
+      ${labels}
+    </svg>`;
+  }
+
   async function renderSajuResult(entry) {
     lastSajuEntry = entry;
     const reading = await getSajuReading(entry);
@@ -597,31 +694,20 @@
     $('sjrIlganTitle').textContent = il.title;
     $('sjrIlganText').textContent = il.text;
 
-    $('sjrBars').innerHTML = EL_ORDER.map(el => {
-      const c = reading.counts[el];
-      const pct = reading.total ? Math.round(c / reading.total * 100) : 0;
-      return `<div class="ebar-row">
-        <span class="ename">${reading.emojis[el]} ${elName(el)}</span>
-        <span class="etrack"><span class="efill" data-w="${pct}" style="background:${reading.colors[el]}"></span></span>
-        <span class="ecnt">${c}</span>
-      </div>`;
-    }).join('');
-    requestAnimationFrame(() => {
-      document.querySelectorAll('#sjrBars .efill').forEach(f => { f.style.width = f.dataset.w + '%'; });
-    });
+    $('sjrBars').innerHTML = radarSvg(reading);
 
     $('sjrNotes').innerHTML =
       reading.notes.map(n => `<div class="enote">${n}</div>`).join('') +
       `<div class="enote" style="opacity:0.75">${reading.balanceNote}</div>`;
 
-    // yin-yang bar
+    // yin-yang bar (counts shown inside each side when there's room)
     const yyTotal = reading.yy.yang + reading.yy.yin;
     const yangPct = yyTotal ? Math.round(reading.yy.yang / yyTotal * 100) : 50;
     $('sjrYinYang').innerHTML = `
       <div class="yy-row">
-        <span class="yy-label">${t('yy.yang')}</span>
-        <span class="yy-track"><span class="yy-yang" style="width:${yangPct}%"></span><span class="yy-yin" style="width:${100 - yangPct}%"></span></span>
-        <span class="yy-cnt">${reading.yy.yang} : ${reading.yy.yin}</span>
+        <span class="yy-label">☀️ ${t('yy.yang')}</span>
+        <span class="yy-track"><span class="yy-yang" style="width:${yangPct}%">${yangPct >= 14 ? reading.yy.yang : ''}</span><span class="yy-yin" style="width:${100 - yangPct}%">${100 - yangPct >= 14 ? reading.yy.yin : ''}</span></span>
+        <span class="yy-label">${t('yy.yin')} 🌙</span>
       </div>
       <div class="enote" style="margin-top:6px">${reading.yyText}</div>`;
 
@@ -646,14 +732,30 @@
       $('sjrDaeun').innerHTML = `<div class="daeun-note">${t('d.note.gender')}</div>`;
     }
 
-    // interpretation sections (static + optional AI detail)
-    const ai = reading.llm || {};
+    // interpretation sections (static now, AI detail patched in when it arrives)
     const aiNote = (s) => s ? `<div class="enote ai">${s}</div>` : '';
-    $('sjrPersona').innerHTML = reading.aptText + aiNote(ai.personality);
-    $('sjrWealth').innerHTML = reading.wealthText + aiNote(ai.wealth);
-    $('sjrLove').innerHTML = reading.loveText + aiNote(ai.love);
-    $('sjrForecast').innerHTML =
-      `<div>${reading.yearText}</div><div style="margin-top:8px">${reading.monthText}</div>` + aiNote(ai.forecast);
+    const applyAi = () => {
+      const ai = entry.ai ? entry.ai[lang] || {} : {};
+      $('sjrPersona').innerHTML = reading.aptText + aiNote(ai.personality);
+      $('sjrWealth').innerHTML = reading.wealthText + aiNote(ai.wealth);
+      $('sjrLove').innerHTML = reading.loveText + aiNote(ai.love);
+      $('sjrForecast').innerHTML =
+        `<div>${reading.yearText}</div><div style="margin-top:8px">${reading.monthText}</div>` + aiNote(ai.forecast);
+      $('sjrOverall').innerHTML = reading.overallText + aiNote(ai.overall);
+    };
+    applyAi();
+    const status = $('sjrAiStatus');
+    if (!entry.ai && LLM_ENDPOINT) {
+      status.textContent = t('ai.loading');
+      status.style.display = 'block';
+      reading.aiPromise.then(() => {
+        if (lastSajuEntry !== entry || currentView !== 'v-saju-result') return;
+        status.style.display = 'none';
+        applyAi();
+      });
+    } else {
+      status.style.display = 'none';
+    }
   }
 
   $('sjrAgain').addEventListener('click', () => { backOverride = null; show('v-saju-input'); });
@@ -673,8 +775,12 @@
     return spread === 'celtic' ? `${i + 1}. ${s}` : s;
   }
 
-  const tstate = { topic: null, spread: null, deck: [], picks: [], revealed: 0, replay: false, ts: null };
+  const tstate = { topic: null, spread: null, deck: [], picks: [], revealed: 0, replay: false, ts: null, histEntry: null, overall: null };
   let candidate = null;
+  /* bumped every time #readings is cleared; in-flight appendReading calls
+     from an older render (e.g. rapid language toggles) abort instead of
+     appending duplicates into the freshly cleared list */
+  let readingsGen = 0;
 
   document.querySelectorAll('[data-topic]').forEach(b => {
     b.addEventListener('click', () => {
@@ -694,6 +800,8 @@
 
   async function startTarotTable() {
     tstate.replay = false;
+    tstate.histEntry = null;
+    tstate.overall = null;
     tstate.picks = [];
     tstate.revealed = 0;
     candidate = null;
@@ -702,6 +810,8 @@
     $('pickBox').style.display = 'none';
     $('revealBox').style.display = 'none';
     $('readings').innerHTML = '';
+    readingsGen++;
+    $('tarotOverallCard').style.display = 'none';
     $('tarotDisc').style.display = 'none';
     $('tarotDone').style.display = 'none';
 
@@ -755,22 +865,41 @@
       c.style.transform = base;
       c.dataset.base = base;
       c.dataset.i = i;
-      c.addEventListener('click', onFanTap);
       fan.appendChild(c);
     }
     const sc = document.querySelector('.fan-scroll');
     sc.scrollLeft = (880 - sc.clientWidth) / 2;
   }
 
-  /* two-step picking: tapping a fan card lifts it OUT of the fan into the
+  /* two-step picking: tapping the fan lifts a card OUT of it into the
      upright preview slot at the top (its empty spot stays visible in the
-     fan); tapping the preview card confirms, tapping another fan card swaps */
-  function onFanTap(e) {
-    const need = NEED[tstate.spread];
-    if (tstate.picks.length >= need) return;
-    const el = e.currentTarget;
-    if (el.classList.contains('gone') || el.classList.contains('away')) return;
+     fan); tapping the preview card confirms, tapping another fan card swaps.
+     Taps are mapped by ANGLE from the fan pivot to the nearest available
+     card, so the thin sliver cards at both edges are as easy to hit as the
+     wide middle ones (taps beyond the arc snap to the outermost card). */
+  $('fan').addEventListener('click', (e) => {
+    if (!tstate.spread || $('pickBox').style.display !== 'block') return;
+    if (tstate.picks.length >= NEED[tstate.spread]) return;
+    const rect = $('fan').getBoundingClientRect();
+    const x = e.clientX - rect.left - 440;   // fan pivot: (440, 445), cards at radius ~268
+    const y = 445 - (e.clientY - rect.top);
+    const r = Math.hypot(x, y);
+    if (r < 160 || r > 400) return;
+    const deg = Math.max(-62, Math.min(62, Math.atan2(x, y) * 180 / Math.PI));
+    const idx = Math.round((deg + 62) / (124 / 77));
+    const cards = $('fan').children;
+    for (let d = 0; d < 78; d++) {
+      for (const j of [idx - d, idx + d]) {
+        const el = cards[j];
+        if (el && !el.classList.contains('gone') && !el.classList.contains('away')) {
+          selectCandidate(el);
+          return;
+        }
+      }
+    }
+  });
 
+  function selectCandidate(el) {
     if (candidate) candidate.classList.remove('away'); // put the old one back
     candidate = el;
     el.classList.add('away');
@@ -848,6 +977,11 @@
       $('rvSlot' + i).addEventListener('click', () => onRevealTap(i));
     });
     setReady();
+
+    // prefetch every AI reading in parallel now that the cards are fixed,
+    // so each reveal (and the overall note) doesn't wait on a live API call
+    tstate.picks.forEach((pk, i) => { fetchTarotAi(pk, i); });
+    fetchTarotOverall();
   }
 
   function setReady() {
@@ -863,7 +997,7 @@
     slot.classList.add('flip');
     tstate.revealed++;
     setTimeout(async () => {
-      await appendReading(i);
+      await appendReading(i, readingsGen);
       if (tstate.revealed >= tstate.picks.length) finishTarot();
       else setReady();
     }, 720);
@@ -887,20 +1021,56 @@
       result.topicLabel = t('topic.' + topic);
       result.topicText = texts[TOPIC_FIELD[topic]];
     }
-    // detailed AI reading when a backend is configured (no-op otherwise)
-    const llmBody = await llmReading('tarot', {
-      card: { en: card.en, ko: card.ko, arcana: card.arcana, suit: card.suit, label: card.label },
-      reversed: pick.rev,
-      topic, spread,
-      position: POS_KEYS[spread][posIndex],
-    });
-    result.llmText = llmBody ? llmBody.text || null : null;
+    // detailed AI reading when a backend is configured (no-op otherwise);
+    // normally already prefetched in parallel right after the cards were
+    // picked (see buildReveal), so this await is instant at reveal time
+    await fetchTarotAi(pick, posIndex);
+    result.llmText = pick.ai ? pick.ai[lang] || null : null;
     return result;
   }
 
-  async function appendReading(i) {
+  /* fetch the AI text for one pick — both languages at once, stored on the
+     pick itself so KR/EN toggles and history replays never re-call the API */
+  function fetchTarotAi(pick, posIndex) {
+    if (pick.ai) return Promise.resolve();
+    const card = dataCache['tarot'].cards[pick.id];
+    return llmOnce(pick, () => llmReading('tarot', {
+      card: { en: card.en, ko: card.ko, arcana: card.arcana, suit: card.suit, label: card.label },
+      reversed: pick.rev,
+      topic: tstate.topic, spread: tstate.spread,
+      position: STR[POS_KEYS[tstate.spread][posIndex]][1],
+    })).then(llmBody => {
+      const txt = llmBody && llmBody.text;
+      if (txt && txt.ko && txt.en) {
+        pick.ai = txt;
+        if (tstate.histEntry) histUpdate(tstate.histEntry);
+      }
+    });
+  }
+
+  /* fetch the AI overall synthesis of the whole spread (both languages) */
+  function fetchTarotOverall() {
+    if (tstate.overall) return Promise.resolve();
+    const picks = tstate.picks;
+    const cards = picks.map((pk, i) => {
+      const c = dataCache['tarot'].cards[pk.id];
+      return { en: c.en, ko: c.ko, reversed: pk.rev, position: STR[POS_KEYS[tstate.spread][i]][1] };
+    });
+    return llmOnce(picks, () => llmReading('tarot_overall', {
+      topic: tstate.topic, spread: tstate.spread, cards,
+    })).then(llmBody => {
+      const txt = llmBody && llmBody.text;
+      if (txt && txt.ko && txt.en && tstate.picks === picks) {
+        tstate.overall = txt;
+        if (tstate.histEntry) { tstate.histEntry.overall = txt; histUpdate(tstate.histEntry); }
+      }
+    });
+  }
+
+  async function appendReading(i, gen) {
     const pk = tstate.picks[i];
     const r = await getTarotReading(pk, tstate.topic, tstate.spread, i);
+    if (gen !== undefined && gen !== readingsGen) return; // superseded render
     const div = document.createElement('div');
     div.className = 'card reading';
     div.innerHTML = `
@@ -912,17 +1082,56 @@
     $('readings').appendChild(div);
   }
 
+  /* overall synthesis card at the bottom: static summary of the spread's
+     texture (major/reversed mix) + AI synthesis patched in when it arrives */
+  function tarotOverallStatic() {
+    const n = tstate.picks.length;
+    const majors = tstate.picks.filter(pk => dataCache['tarot'].cards[pk.id].arcana === 'major').length;
+    const revs = tstate.picks.filter(pk => pk.rev).length;
+    const majorTxt = t(majors === 0 ? 'ov.major.none' : n >= 3 && majors >= Math.ceil(n / 2) ? 'ov.major.many' : 'ov.major.some');
+    const revTxt = t(revs === 0 ? 'ov.rev.none' : n >= 3 && revs >= Math.ceil(n / 2) ? 'ov.rev.many' : 'ov.rev.some');
+    return tf2('ov.base', { sp: spreadName(), major: majorTxt, rev: revTxt });
+  }
+
+  function renderTarotOverall() {
+    const picks = tstate.picks;
+    $('tarotOverallCard').style.display = 'block';
+    $('tarotOverallTitle').textContent = t('t.overall');
+    $('tarotOverallText').innerHTML = tarotOverallStatic();
+    const applyAi = () => {
+      $('tarotOverallAi').innerHTML = tstate.overall
+        ? `<div class="r-topic" style="background:#f4edfd">${tstate.overall[lang]}</div>` : '';
+    };
+    applyAi();
+    const status = $('tarotAiStatus');
+    if (!tstate.overall && LLM_ENDPOINT) {
+      status.textContent = t('ai.loading');
+      status.style.display = 'block';
+      fetchTarotOverall().then(() => {
+        if (tstate.picks !== picks) return;
+        status.style.display = 'none';
+        applyAi();
+      });
+    } else {
+      status.style.display = 'none';
+    }
+  }
+
   function finishTarot() {
     $('revealTitle').textContent = t('t.done');
     $('tarotDisc').style.display = 'block';
     $('tarotDone').style.display = 'flex';
+    renderTarotOverall();
     if (!tstate.replay) {
       tstate.ts = Date.now();
-      histSave({
+      const entry = {
         type: 'tarot', ts: tstate.ts,
         topic: tstate.topic, spread: tstate.spread,
         picks: tstate.picks,
-      });
+        overall: tstate.overall || null,
+      };
+      histSave(entry);
+      tstate.histEntry = entry; // late AI results re-persist via histUpdate
     }
   }
 
@@ -945,8 +1154,13 @@
     $('revealSlots').querySelectorAll('.tfront').forEach((el, i) => {
       el.innerHTML = cardFaceHtml(dataCache['tarot'].cards[tstate.picks[i].id]);
     });
+    if (tstate.picks.length && tstate.revealed >= tstate.picks.length) renderTarotOverall();
+    // fire any missing AI fetches in parallel so the sequential re-render
+    // below never waits on more than the slowest single call
+    tstate.picks.slice(0, tstate.revealed).forEach((pk, i) => { fetchTarotAi(pk, i); });
     $('readings').innerHTML = '';
-    for (let i = 0; i < tstate.revealed; i++) await appendReading(i);
+    const gen = ++readingsGen;
+    for (let i = 0; i < tstate.revealed && gen === readingsGen; i++) await appendReading(i, gen);
   }
 
   $('trAgain').addEventListener('click', () => { backOverride = null; startTarotTable(); });
@@ -990,11 +1204,13 @@
       await loadTarotData();
       if (lang === 'en') await loadTarotEn();
       tstate.replay = true;
+      tstate.histEntry = e;
       tstate.topic = e.topic;
       tstate.spread = e.spread;
       tstate.picks = e.picks;
       tstate.revealed = e.picks.length;
       tstate.ts = e.ts;
+      tstate.overall = e.overall || null;
       show('v-tarot-table');
       $('shuffleBox').style.display = 'none';
       $('pickBox').style.display = 'none';
@@ -1010,8 +1226,11 @@
             <div class="tfront">${cardFaceHtml(card)}</div>
           </div></div></div>`;
       }).join('');
+      renderTarotOverall();
+      e.picks.forEach((pk, i) => { fetchTarotAi(pk, i); }); // parallel, see rerenderTarotTexts
       $('readings').innerHTML = '';
-      for (let i = 0; i < e.picks.length; i++) await appendReading(i);
+      const gen = ++readingsGen;
+      for (let i = 0; i < e.picks.length && gen === readingsGen; i++) await appendReading(i, gen);
       $('tarotDisc').style.display = 'block';
       $('tarotDone').style.display = 'flex';
       backOverride = 'v-history';
