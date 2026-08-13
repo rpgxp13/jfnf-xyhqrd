@@ -220,12 +220,13 @@
     return lunarReady;
   }
 
-  /* ═══════════ future LLM integration (AWS Lambda proxy) ═══════════
-     Set LLM_ENDPOINT to the proxy URL to enable detailed AI readings.
+  /* ═══════════ LLM integration (AWS Lambda proxy) ═══════════
+     Deploy /lambda (see lambda/README.md) and paste the Function URL here
+     to enable detailed AI readings, e.g.:
+       const LLM_ENDPOINT = 'https://xxxx.lambda-url.ap-northeast-2.on.aws/';
      The endpoint receives { kind: 'saju'|'tarot', lang, payload } and
-     should return { text: "detailed reading" }. While it is null the
-     static JSON templates below are used as-is, so the page keeps
-     working with zero backend. */
+     returns { text }. While it is null (or on any failure) the static
+     JSON templates below are used as-is, so the page always works. */
   const LLM_ENDPOINT = null;
 
   async function llmReading(kind, payload) {
@@ -325,13 +326,12 @@
     if (!dateStr) { alert(t('alert.date')); return; }
     const [y, m, d] = dateStr.split('-').map(Number);
     const mode = segVal($('modeSeg'));
-    const hasTime = mode === 'four' && !$('sjNoTime').checked;
+    const tm = $('sjTime').value;
+    // Never block on a missing time: empty time (or "don't know") simply
+    // switches the reading to three pillars automatically.
+    const hasTime = mode === 'four' && !$('sjNoTime').checked && !!tm;
     let hh = 12, mi = 0;
-    if (hasTime) {
-      const tm = $('sjTime').value;
-      if (!tm) { alert(t('alert.time')); return; }
-      [hh, mi] = tm.split(':').map(Number);
-    }
+    if (hasTime) [hh, mi] = tm.split(':').map(Number);
     const input = {
       cal: segVal($('calSeg')),
       leap: $('sjLeap').checked,
