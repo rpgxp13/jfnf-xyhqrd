@@ -310,6 +310,17 @@
     }
     .slot { text-align: center; }
     .slot .pos { font-size: 12px; font-weight: 700; color: #8a7a63; margin-bottom: 6px; }
+
+    /* compact layout for the 10-card celtic cross */
+    .slots.celtic { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+    .slots.celtic .tcard { width: 62px; height: 97px; }
+    .slots.celtic .tcard .tback::after { font-size: 18px; }
+    .slots.celtic .slot .pos { font-size: 10px; min-height: 26px; display: flex; align-items: flex-end; justify-content: center; margin-bottom: 4px; line-height: 1.25; }
+    .slots.celtic .tface .femoji { font-size: 22px; }
+    .slots.celtic .tface .fko { font-size: 9.5px; margin-top: 3px; }
+    .slots.celtic .tface .fen { display: none; }
+    .slots.celtic .tface .corner { font-size: 9px; top: 3px; left: 5px; }
+    .slots.celtic .tface .suitmark { font-size: 9px; top: 3px; right: 5px; }
     .tcard {
       width: 96px;
       height: 150px;
@@ -478,6 +489,14 @@
       </div>
 
       <div class="field">
+        <label data-i18n="f.country">출생 국가 (시차 반영)</label>
+        <div class="seg" id="countrySeg">
+          <button class="sel" data-v="KR" data-i18n="c.kr">🇰🇷 한국</button>
+          <button data-v="PH" data-i18n="c.ph">🇵🇭 필리핀</button>
+        </div>
+      </div>
+
+      <div class="field">
         <label data-i18n="f.cal">달력 기준</label>
         <div class="seg" id="calSeg">
           <button class="sel" data-v="solar" data-i18n="f.solar">양력</button>
@@ -494,9 +513,17 @@
       </div>
 
       <div class="field">
+        <label data-i18n="f.mode">풀이 방식</label>
+        <div class="seg" id="modeSeg">
+          <button class="sel" data-v="four" data-i18n="mode.four">사주 (시간 포함)</button>
+          <button data-v="three" data-i18n="mode.three">삼주 (시간 제외)</button>
+        </div>
+      </div>
+
+      <div class="field" id="timeField">
         <label data-i18n="f.time">태어난 시간</label>
         <input type="time" id="sjTime" value="12:00">
-        <label class="check-row"><input type="checkbox" id="sjNoTime"> <span data-i18n="f.notime">시간을 몰라요 (삼주로 풀이)</span></label>
+        <label class="check-row"><input type="checkbox" id="sjNoTime"> <span data-i18n="f.notime">시간을 몰라요 (삼주로 자동 전환)</span></label>
       </div>
 
       <div class="field">
@@ -569,6 +596,11 @@
         <span class="big">🂠🂠🂠</span>
         <span><span class="t" data-i18n="sp.three">쓰리 카드</span>
           <div class="d" data-i18n="sp.three.d">과거 · 현재 · 미래의 흐름 읽기</div></span>
+      </button>
+      <button class="pick-card" data-spread="celtic">
+        <span class="big">✚</span>
+        <span><span class="t" data-i18n="sp.celtic">켈틱 크로스</span>
+          <div class="d" data-i18n="sp.celtic.d">10장으로 보는 깊이 있는 전체 리딩</div></span>
       </button>
     </div>
   </div>

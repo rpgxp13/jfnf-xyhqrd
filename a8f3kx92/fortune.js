@@ -32,13 +32,19 @@
     'sj.sub':    ['생년월일과 태어난 시간을 알려주세요', 'Tell us your birth date and time'],
     'f.name':    ['이름 (선택)', 'Name (optional)'],
     'f.name.ph': ['기록에 표시할 이름', 'Shown in your history'],
+    'f.country': ['출생 국가 (시차 반영)', 'Country of birth (time zone)'],
+    'c.kr':      ['🇰🇷 한국', '🇰🇷 Korea'],
+    'c.ph':      ['🇵🇭 필리핀', '🇵🇭 Philippines'],
+    'f.mode':    ['풀이 방식', 'Reading type'],
+    'mode.four':  ['사주 (시간 포함)', 'Four pillars (with hour)'],
+    'mode.three': ['삼주 (시간 제외)', 'Three pillars (no hour)'],
     'f.cal':     ['달력 기준', 'Calendar'],
     'f.solar':   ['양력', 'Solar'],
     'f.lunar':   ['음력', 'Lunar'],
     'f.leap':    ['윤달이에요', 'It’s a leap month'],
     'f.date':    ['생년월일', 'Date of birth'],
     'f.time':    ['태어난 시간', 'Time of birth'],
-    'f.notime':  ['시간을 몰라요 (삼주로 풀이)', 'I don’t know the time (3-pillar reading)'],
+    'f.notime':  ['시간을 몰라요 (삼주로 자동 전환)', 'I don’t know the time (switches to 3 pillars)'],
     'f.gender':  ['성별 (선택)', 'Gender (optional)'],
     'f.female':  ['여성', 'Female'],
     'f.male':    ['남성', 'Male'],
@@ -72,6 +78,8 @@
     'sp.one.d':   ['지금 가장 필요한 하나의 메시지', 'The single message you need right now'],
     'sp.three':   ['쓰리 카드', 'Three Cards'],
     'sp.three.d': ['과거 · 현재 · 미래의 흐름 읽기', 'Past · Present · Future flow'],
+    'sp.celtic':   ['켈틱 크로스', 'Celtic Cross'],
+    'sp.celtic.d': ['10장으로 보는 깊이 있는 전체 리딩', 'A deep 10-card reading of your whole situation'],
     't.shuffle':  ['카드를 섞는 중… 마음속으로 질문을 떠올려 보세요 🌙', 'Shuffling… hold your question in your mind 🌙'],
     't.fanhint':  ['마음이 가는 카드를 눌러보세요', 'Tap a card that calls to you'],
     't.fanhint2': ['위의 카드를 누르면 확정! 부채꼴에서 다른 카드로 바꿀 수도 있어요', 'Tap the card above to confirm — or pick another from the fan'],
@@ -83,6 +91,16 @@
     'pos.past':    ['과거', 'Past'],
     'pos.present': ['현재', 'Present'],
     'pos.future':  ['미래', 'Future'],
+    'pos.c1':  ['현재 상황', 'Present'],
+    'pos.c2':  ['장애물', 'Challenge'],
+    'pos.c3':  ['원인 · 뿌리', 'Root cause'],
+    'pos.c4':  ['지나간 과거', 'Recent past'],
+    'pos.c5':  ['드러나는 목표', 'Goal above'],
+    'pos.c6':  ['다가올 흐름', 'Near future'],
+    'pos.c7':  ['나 자신', 'Yourself'],
+    'pos.c8':  ['주변 환경', 'Around you'],
+    'pos.c9':  ['희망과 두려움', 'Hopes & fears'],
+    'pos.c10': ['최종 결과', 'Outcome'],
     'rev.badge':   ['역방향', 'Reversed'],
 
     'h.title': ['🕘 지난 기록', '🕘 Past readings'],
@@ -202,6 +220,28 @@
     return lunarReady;
   }
 
+  /* ═══════════ future LLM integration (AWS Lambda proxy) ═══════════
+     Set LLM_ENDPOINT to the proxy URL to enable detailed AI readings.
+     The endpoint receives { kind: 'saju'|'tarot', lang, payload } and
+     should return { text: "detailed reading" }. While it is null the
+     static JSON templates below are used as-is, so the page keeps
+     working with zero backend. */
+  const LLM_ENDPOINT = null;
+
+  async function llmReading(kind, payload) {
+    if (!LLM_ENDPOINT) return null;
+    try {
+      const r = await fetch(LLM_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kind, lang, payload }),
+      });
+      if (!r.ok) return null;
+      const j = await r.json();
+      return j.text || null;
+    } catch { return null; }
+  }
+
   const dataCache = {};
   async function loadJson(name) {
     if (!dataCache[name]) dataCache[name] = await (await fetch('./data/' + name + '.json')).json();
@@ -251,11 +291,20 @@
         if (segEl.id === 'calSeg') {
           $('leapRow').style.display = b.dataset.v === 'lunar' ? 'flex' : 'none';
         }
+        if (segEl.id === 'modeSeg') {
+          $('timeField').style.display = b.dataset.v === 'three' ? 'none' : 'block';
+        }
       });
     });
   }
   segInit($('calSeg'));
   segInit($('genderSeg'));
+  segInit($('countrySeg'));
+  segInit($('modeSeg'));
+
+  /* standard-time offset per birth country; the almanac library works on
+     UTC+8 (CST), so birth times are shifted onto that base before computing */
+  const COUNTRY_UTC = { KR: 9, PH: 8 };
   const segVal = (segEl) => segEl.querySelector('button.sel').dataset.v;
 
   $('sjNoTime').addEventListener('change', () => {
@@ -275,7 +324,8 @@
     const dateStr = $('sjDate').value;
     if (!dateStr) { alert(t('alert.date')); return; }
     const [y, m, d] = dateStr.split('-').map(Number);
-    const hasTime = !$('sjNoTime').checked;
+    const mode = segVal($('modeSeg'));
+    const hasTime = mode === 'four' && !$('sjNoTime').checked;
     let hh = 12, mi = 0;
     if (hasTime) {
       const tm = $('sjTime').value;
@@ -285,6 +335,7 @@
     const input = {
       cal: segVal($('calSeg')),
       leap: $('sjLeap').checked,
+      country: segVal($('countrySeg')),
       y, m, d, hasTime, hh, mi,
     };
 
@@ -314,14 +365,26 @@
   });
 
   /* ═══════════ saju: computation (lunar-javascript) ═══════════ */
+  function shiftToCST(y, m, d, hh, mi, utcOff) {
+    const ms = Date.UTC(y, m - 1, d, hh, mi) - (utcOff - 8) * 3600000;
+    const dt = new Date(ms);
+    return { y: dt.getUTCFullYear(), m: dt.getUTCMonth() + 1, d: dt.getUTCDate(), hh: dt.getUTCHours(), mi: dt.getUTCMinutes() };
+  }
+
   function computeSaju(input) {
-    let lunarObj;
+    const utcOff = COUNTRY_UTC[input.country] || 9;
+    const hh = input.hasTime ? input.hh : 12;
+    const mi = input.hasTime ? input.mi : 0;
+
+    // resolve lunar input to a solar date first, then apply the time-zone shift
+    let sy = input.y, sm = input.m, sd = input.d;
     if (input.cal === 'lunar') {
       const lm = input.leap ? -input.m : input.m;
-      lunarObj = window.Lunar.fromYmdHms(input.y, lm, input.d, input.hasTime ? input.hh : 12, input.hasTime ? input.mi : 0, 0);
-    } else {
-      lunarObj = window.Solar.fromYmdHms(input.y, input.m, input.d, input.hasTime ? input.hh : 12, input.hasTime ? input.mi : 0, 0).getLunar();
+      const sol = window.Lunar.fromYmd(input.y, lm, input.d).getSolar();
+      sy = sol.getYear(); sm = sol.getMonth(); sd = sol.getDay();
     }
+    const s = shiftToCST(sy, sm, sd, hh, mi, utcOff);
+    const lunarObj = window.Solar.fromYmdHms(s.y, s.m, s.d, s.hh, s.mi, 0).getLunar();
     const ec = lunarObj.getEightChar();
     return {
       pillars: {
@@ -336,9 +399,10 @@
   function describeBirth(entry) {
     if (!entry.in) return entry.birth || '';
     const i = entry.in;
+    const flag = i.country === 'PH' ? '🇵🇭 ' : (i.country === 'KR' ? '🇰🇷 ' : '');
     const cal = t(i.cal === 'lunar' ? 'b.lunar' : 'b.solar') + (i.cal === 'lunar' && i.leap ? t('b.leap') : '');
     const tp = i.hasTime ? ` ${String(i.hh).padStart(2, '0')}:${String(i.mi).padStart(2, '0')}` : t('b.notime');
-    return `${cal} ${i.y}.${String(i.m).padStart(2, '0')}.${String(i.d).padStart(2, '0')}${tp}`;
+    return `${flag}${cal} ${i.y}.${String(i.m).padStart(2, '0')}.${String(i.d).padStart(2, '0')}${tp}`;
   }
 
   function countElements(pillars) {
@@ -353,7 +417,8 @@
   }
 
   /* ═══════════ saju: reading (static JSON — swap point for LLM API) ═══════════ */
-  async function getSajuReading(pillars) {
+  async function getSajuReading(entry) {
+    const pillars = entry.pillars;
     const data = await loadSajuData();
     const en = lang === 'en' ? await loadSajuEn() : null;
     const dayGan = pillars.day[0];
@@ -375,8 +440,16 @@
     });
     if (notes.length === 0) notes.push(en ? en.balance.balanced : data.balance.balanced);
 
+    // detailed AI reading when a backend is configured (no-op otherwise)
+    const llmText = await llmReading('saju', {
+      pillars, counts,
+      name: entry.name || null,
+      gender: entry.gender || null,
+      birth: describeBirth(entry),
+    });
+
     return {
-      ilgan, counts, total, notes,
+      ilgan, counts, total, notes, llmText,
       colors: Object.fromEntries(EL_ORDER.map(el => [el, data.elements[el].color])),
       emojis: Object.fromEntries(EL_ORDER.map(el => [el, data.elements[el].emoji])),
       balanceNote: en ? en.balance.note : data.balance.note,
@@ -386,7 +459,7 @@
   /* ═══════════ saju: result rendering ═══════════ */
   async function renderSajuResult(entry) {
     lastSajuEntry = entry;
-    const reading = await getSajuReading(entry.pillars);
+    const reading = await getSajuReading(entry);
     const p = entry.pillars;
 
     $('sjrTitle').textContent = entry.name ? tf('r.of', entry.name) : t('r.myeongsik');
@@ -429,6 +502,7 @@
 
     $('sjrNotes').innerHTML =
       reading.notes.map(n => `<div class="enote">${n}</div>`).join('') +
+      (reading.llmText ? `<div class="enote" style="background:#f4edfd">${reading.llmText}</div>` : '') +
       `<div class="enote" style="opacity:0.75">${reading.balanceNote}</div>`;
   }
 
@@ -436,8 +510,18 @@
   $('sjrHome').addEventListener('click', () => { backOverride = null; show('v-select'); });
 
   /* ═══════════ tarot ═══════════ */
-  const POS_KEYS = { one: ['pos.msg'], three: ['pos.past', 'pos.present', 'pos.future'] };
+  const POS_KEYS = {
+    one: ['pos.msg'],
+    three: ['pos.past', 'pos.present', 'pos.future'],
+    celtic: ['pos.c1', 'pos.c2', 'pos.c3', 'pos.c4', 'pos.c5', 'pos.c6', 'pos.c7', 'pos.c8', 'pos.c9', 'pos.c10'],
+  };
+  const NEED = { one: 1, three: 3, celtic: 10 };
   const TOPIC_FIELD = { love: 'love', work: 'work', money: 'money' };
+
+  function posLabel(spread, i) {
+    const s = t(POS_KEYS[spread][i]);
+    return spread === 'celtic' ? `${i + 1}. ${s}` : s;
+  }
 
   const tstate = { topic: null, spread: null, deck: [], picks: [], revealed: 0, replay: false, ts: null };
   let candidate = null;
@@ -455,7 +539,7 @@
     });
   });
 
-  const spreadName = () => t(tstate.spread === 'one' ? 'sp.one' : 'sp.three');
+  const spreadName = () => t('sp.' + tstate.spread);
   const topicName = () => t('topic.' + tstate.topic);
 
   async function startTarotTable() {
@@ -501,9 +585,10 @@
     $('shuffleBox').style.display = 'none';
     $('pickBox').style.display = 'block';
 
-    const need = tstate.spread === 'one' ? 1 : 3;
+    const need = NEED[tstate.spread];
+    $('pickSlots').className = 'slots' + (tstate.spread === 'celtic' ? ' celtic' : '');
     $('pickSlots').innerHTML = POS_KEYS[tstate.spread].map((k, i) =>
-      `<div class="slot"><div class="pos">${t(k)}</div><div class="tcard" id="pickSlot${i}" style="width:64px;height:100px"><div class="tin"><div class="tback cback" style="opacity:0.25"></div></div></div></div>`
+      `<div class="slot"><div class="pos">${posLabel(tstate.spread, i)}</div><div class="tcard" id="pickSlot${i}" style="width:${tstate.spread === 'celtic' ? 46 : 64}px;height:${tstate.spread === 'celtic' ? 72 : 100}px"><div class="tin"><div class="tback cback" style="opacity:0.25"></div></div></div></div>`
     ).join('');
     $('pickCount').textContent = `0 / ${need}`;
     fanHintDefault();
@@ -531,7 +616,7 @@
      upright preview slot at the top (its empty spot stays visible in the
      fan); tapping the preview card confirms, tapping another fan card swaps */
   function onFanTap(e) {
-    const need = tstate.spread === 'one' ? 1 : 3;
+    const need = NEED[tstate.spread];
     if (tstate.picks.length >= need) return;
     const el = e.currentTarget;
     if (el.classList.contains('gone') || el.classList.contains('away')) return;
@@ -551,7 +636,7 @@
   }
 
   function confirmPick(el) {
-    const need = tstate.spread === 'one' ? 1 : 3;
+    const need = NEED[tstate.spread];
     candidate = null;
     el.classList.add('gone');
     el.classList.remove('away');
@@ -597,9 +682,10 @@
     $('revealTitle').textContent = t('t.reveal');
     $('revealSub').textContent = `${topicName()} · ${spreadName()}`;
 
+    $('revealSlots').className = 'slots' + (tstate.spread === 'celtic' ? ' celtic' : '');
     $('revealSlots').innerHTML = tstate.picks.map((pk, i) => {
       const card = dataCache['tarot'].cards[pk.id];
-      return `<div class="slot"><div class="pos">${t(POS_KEYS[tstate.spread][i])}</div>
+      return `<div class="slot"><div class="pos">${posLabel(tstate.spread, i)}</div>
         <div class="tcard${pk.rev ? ' rev' : ''}" id="rvSlot${i}">
           <div class="tin">
             <div class="tback cback"></div>
@@ -634,7 +720,7 @@
   }
 
   /* ═══════════ tarot: reading (static JSON — swap point for LLM API) ═══════════ */
-  async function getTarotReading(pick, topic) {
+  async function getTarotReading(pick, topic, spread, posIndex) {
     const data = await loadTarotData();
     const card = data.cards[pick.id];
     let texts = card; // korean fields live on the card itself
@@ -645,25 +731,33 @@
     const result = {
       card,
       meaning: pick.rev ? texts.rev : texts.up,
-      topicLabel: null, topicText: null,
+      topicLabel: null, topicText: null, llmText: null,
     };
     if (topic !== 'all') {
       result.topicLabel = t('topic.' + topic);
       result.topicText = texts[TOPIC_FIELD[topic]];
     }
+    // detailed AI reading when a backend is configured (no-op otherwise)
+    result.llmText = await llmReading('tarot', {
+      card: { en: card.en, ko: card.ko, arcana: card.arcana, suit: card.suit, label: card.label },
+      reversed: pick.rev,
+      topic, spread,
+      position: POS_KEYS[spread][posIndex],
+    });
     return result;
   }
 
   async function appendReading(i) {
     const pk = tstate.picks[i];
-    const r = await getTarotReading(pk, tstate.topic);
+    const r = await getTarotReading(pk, tstate.topic, tstate.spread, i);
     const div = document.createElement('div');
     div.className = 'card reading';
     div.innerHTML = `
-      <div class="r-pos">${t(POS_KEYS[tstate.spread][i])}</div>
+      <div class="r-pos">${posLabel(tstate.spread, i)}</div>
       <div class="r-name">${r.card.emoji} ${cardName(r.card)} <span style="font-weight:600;color:#8a7a63;font-size:12px">${cardSubName(r.card)}</span>${pk.rev ? `<span class="rev-badge">${t('rev.badge')}</span>` : ''}</div>
       <div class="r-mean">${r.meaning}</div>
-      ${r.topicText ? `<div class="r-topic"><b>${r.topicLabel}</b> · ${r.topicText}</div>` : ''}`;
+      ${r.topicText ? `<div class="r-topic"><b>${r.topicLabel}</b> · ${r.topicText}</div>` : ''}
+      ${r.llmText ? `<div class="r-topic" style="background:#f4edfd">${r.llmText}</div>` : ''}`;
     $('readings').appendChild(div);
   }
 
@@ -685,8 +779,8 @@
   async function rerenderTarotTexts() {
     if ($('revealBox').style.display !== 'block') { // still picking
       if ($('pickBox').style.display === 'block') {
-        const need = tstate.spread === 'one' ? 1 : 3;
-        $('pickSlots').querySelectorAll('.pos').forEach((el, i) => { el.textContent = t(POS_KEYS[tstate.spread][i]); });
+        const need = NEED[tstate.spread];
+        $('pickSlots').querySelectorAll('.pos').forEach((el, i) => { el.textContent = posLabel(tstate.spread, i); });
         $('pickCount').textContent = `${tstate.picks.length} / ${need}`;
         if (candidate) { $('fanHint').classList.add('cand-mode'); $('fanHint').textContent = t('t.fanhint2'); }
         else fanHintDefault();
@@ -696,7 +790,7 @@
     if (lang === 'en') await loadTarotEn();
     $('revealTitle').textContent = tstate.revealed >= tstate.picks.length ? (tstate.replay ? t('t.replay') : t('t.done')) : t('t.reveal');
     $('revealSub').textContent = `${topicName()} · ${spreadName()}`;
-    $('revealSlots').querySelectorAll('.pos').forEach((el, i) => { el.textContent = t(POS_KEYS[tstate.spread][i]); });
+    $('revealSlots').querySelectorAll('.pos').forEach((el, i) => { el.textContent = posLabel(tstate.spread, i); });
     $('revealSlots').querySelectorAll('.tfront').forEach((el, i) => {
       el.innerHTML = cardFaceHtml(dataCache['tarot'].cards[tstate.picks[i].id]);
     });
@@ -727,7 +821,7 @@
         const title = e.name ? tf('h.of', e.name) : t('h.saju');
         b.innerHTML = `<span class="hi">📜</span><span><div class="ht">${title}</div><div class="hd">${describeBirth(e)} · ${fmtTs(e.ts)}</div></span>`;
       } else {
-        b.innerHTML = `<span class="hi">🃏</span><span><div class="ht">${t('h.tarot')} · ${t('topic.' + e.topic)}</div><div class="hd">${t(e.spread === 'one' ? 'sp.one' : 'sp.three')} · ${fmtTs(e.ts)}</div></span>`;
+        b.innerHTML = `<span class="hi">🃏</span><span><div class="ht">${t('h.tarot')} · ${t('topic.' + e.topic)}</div><div class="hd">${t('sp.' + e.spread)} · ${fmtTs(e.ts)}</div></span>`;
       }
       b.addEventListener('click', () => openHistory(idx));
       box.appendChild(b);
@@ -756,9 +850,10 @@
       $('revealBox').style.display = 'block';
       $('revealTitle').textContent = t('t.replay');
       $('revealSub').textContent = `${topicName()} · ${spreadName()} · ${fmtTs(e.ts)}`;
+      $('revealSlots').className = 'slots' + (e.spread === 'celtic' ? ' celtic' : '');
       $('revealSlots').innerHTML = e.picks.map((pk, i) => {
         const card = dataCache['tarot'].cards[pk.id];
-        return `<div class="slot"><div class="pos">${t(POS_KEYS[e.spread][i])}</div>
+        return `<div class="slot"><div class="pos">${posLabel(e.spread, i)}</div>
           <div class="tcard flip${pk.rev ? ' rev' : ''}"><div class="tin" style="transition:none">
             <div class="tback cback"></div>
             <div class="tfront">${cardFaceHtml(card)}</div>
