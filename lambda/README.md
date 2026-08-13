@@ -27,6 +27,22 @@ KR/EN 전환 시 API를 다시 부르지 않습니다.
 
 모두 구조화 출력(json_schema)으로 형식이 보장됩니다.
 
+## 공유 히스토리 API (DynamoDB)
+
+두 기기가 같은 기록을 보도록 히스토리를 DynamoDB `fortune-history` 테이블
+(ap-northeast-2, 온디맨드, PK `space`/SK `ts`)에 저장합니다. Lambda 실행 역할
+`fortune-llm-proxy-role`에 인라인 정책 `fortune-history-ddb`로 권한 부여됨.
+AWS SDK v3은 Lambda 런타임에 내장되어 zip에 포함할 필요 없음.
+
+- `{ kind: "hist_put", payload: { space, entry } }` — 업서트 (entry.ts가 키)
+- `{ kind: "hist_list", payload: { space } }` — 최신 30개, `{ items: [...] }`
+- `{ kind: "hist_delete", payload: { space, ts } }` — 단건 삭제
+- `{ kind: "hist_clear", payload: { space } }` — 전체 삭제
+
+클라이언트(fortune.js)는 `SYNC_SPACE` 상수를 space로 사용하고, localStorage를
+오프라인 캐시로 유지합니다(푸시 실패 시 `_local` 플래그 → 다음 목록 조회 때 재푸시).
+AI 텍스트가 entry에 포함되어 저장되므로 다른 기기에서 열 때 AI 재호출이 없습니다.
+
 ---
 
 ## (참고) 처음부터 다시 배포하는 방법

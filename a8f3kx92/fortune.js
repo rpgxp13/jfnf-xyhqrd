@@ -134,7 +134,9 @@
     'ov.rev.many': ['역방향이 많아 잠시 멈춰 돌아보라는 신호가 함께 왔어요.', 'Many reversals came together — a sign to pause and look back for a moment.'],
 
     'h.title': ['🕘 지난 기록', '🕘 Past readings'],
-    'h.sub':   ['최근 30개까지 이 기기에 저장돼요', 'Up to 30 entries, stored on this device'],
+    'h.sub':   ['최근 30개가 두 사람의 기기에서 함께 보여요', 'The last 30 readings are shared between your devices'],
+    'h.sync':  ['공유 기록 불러오는 중…', 'Loading shared records…'],
+    'h.del.confirm': ['이 기록을 삭제할까요?', 'Delete this reading?'],
     'h.empty': ['아직 기록이 없어요.<br>사주나 타로를 보면 여기에 저장됩니다.', 'No readings yet.<br>Saju and tarot results will be saved here.'],
     'h.clear': ['기록 전체 삭제', 'Delete all'],
     'h.clear.confirm': ['지난 기록을 전부 삭제할까요?', 'Delete all past readings?'],
@@ -310,24 +312,90 @@
   const loadTarotData = () => loadJson('tarot');
   const loadTarotEn = () => loadJson('tarot_en');
 
-  /* ═══════════ history (localStorage) ═══════════ */
+  /* ═══════════ history — shared via DynamoDB, localStorage as cache ═══════════
+     Every entry is pushed to the Lambda history API so BOTH devices see the
+     same records (AI text included, so the other device replays without any
+     API calls). localStorage keeps working as an offline cache: entries that
+     fail to push are flagged _local and re-pushed on the next list sync. */
   const HKEY = 'fortune_history_v1';
+  const SYNC_SPACE = 'hj-a8f3kx92-v1';
+
   function histList() {
     try { return JSON.parse(localStorage.getItem(HKEY)) || []; } catch { return []; }
   }
+  function histWrite(list) {
+    try { localStorage.setItem(HKEY, JSON.stringify(list)); } catch {}
+  }
+
+  async function histApi(kind, payload) {
+    if (!LLM_ENDPOINT) return null;
+    try {
+      const r = await fetch(LLM_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kind, payload: { space: SYNC_SPACE, ...payload } }),
+      });
+      if (!r.ok) return null;
+      return await r.json();
+    } catch { return null; }
+  }
+
+  function histPush(entry) {
+    const { _local, ...clean } = entry;
+    return histApi('hist_put', { entry: clean }).then(r => {
+      if (r && r.ok && entry._local) {
+        delete entry._local;
+        const list = histList();
+        const i = list.findIndex(e => e.ts === entry.ts && e.type === entry.type);
+        if (i >= 0) { delete list[i]._local; histWrite(list); }
+      }
+      return r && r.ok;
+    });
+  }
+
   function histSave(entry) {
+    entry._local = true; // cleared once the server accepts it
     const list = histList();
     list.unshift(entry);
     if (list.length > 30) list.length = 30;
-    try { localStorage.setItem(HKEY, JSON.stringify(list)); } catch {}
+    histWrite(list);
+    histPush(entry);
   }
+
   /* re-persist an entry after it gained AI text (matched by timestamp+type) */
   function histUpdate(entry) {
     const list = histList();
     const i = list.findIndex(e => e.ts === entry.ts && e.type === entry.type);
-    if (i < 0) return;
-    list[i] = entry;
-    try { localStorage.setItem(HKEY, JSON.stringify(list)); } catch {}
+    if (i >= 0) { list[i] = entry; histWrite(list); }
+    histPush(entry);
+  }
+
+  function histDelete(entry) {
+    histWrite(histList().filter(e => !(e.ts === entry.ts && e.type === entry.type)));
+    histApi('hist_delete', { ts: entry.ts });
+  }
+
+  /* one-time migration: records saved before sharing existed carry no
+     _local flag — mark them all so the next sync pushes them to the store */
+  if (!localStorage.getItem('fortune_hist_migrated_v1')) {
+    const list = histList();
+    if (list.length) { list.forEach(e => { e._local = true; }); histWrite(list); }
+    localStorage.setItem('fortune_hist_migrated_v1', '1');
+  }
+
+  /* pull the shared list; local-only entries are kept (and re-pushed) */
+  async function histSync() {
+    const body = await histApi('hist_list', {});
+    if (!body || !Array.isArray(body.items)) return null;
+    const locals = histList().filter(e => e._local);
+    locals.forEach(e => { histPush(e); });
+    const merged = locals
+      .filter(l => !body.items.some(s => s.ts === l.ts && s.type === l.type))
+      .concat(body.items)
+      .sort((a, b) => b.ts - a.ts)
+      .slice(0, 30);
+    histWrite(merged);
+    return merged;
   }
   function fmtTs(ts) {
     const d = new Date(ts);
@@ -1253,8 +1321,20 @@
   /* ═══════════ history UI ═══════════ */
   $('historyBtn').addEventListener('click', () => { renderHistory(); show('v-history'); });
 
+  /* render the cached list immediately, then refresh from the shared store */
+  let histSyncSeq = 0;
   function renderHistory() {
-    const list = histList();
+    renderHistoryList(histList());
+    const seq = ++histSyncSeq;
+    $('histSyncNote').style.display = 'block';
+    histSync().then(list => {
+      if (seq !== histSyncSeq) return; // superseded by a newer refresh
+      $('histSyncNote').style.display = 'none';
+      if (list && currentView === 'v-history') renderHistoryList(list);
+    });
+  }
+
+  function renderHistoryList(list) {
     const box = $('historyList');
     if (!list.length) {
       box.innerHTML = `<div class="h-empty">${t('h.empty')}</div>`;
@@ -1263,7 +1343,7 @@
     }
     $('historyClear').style.display = 'inline';
     box.innerHTML = '';
-    list.forEach((e, idx) => {
+    list.forEach(e => {
       const b = document.createElement('button');
       b.className = 'h-item';
       if (e.type === 'saju') {
@@ -1272,13 +1352,22 @@
       } else {
         b.innerHTML = `<span class="hi">🃏</span><span><div class="ht">${t('h.tarot')} · ${t('topic.' + e.topic)}</div><div class="hd">${t('sp.' + e.spread)} · ${fmtTs(e.ts)}</div></span>`;
       }
-      b.addEventListener('click', () => openHistory(idx));
+      const del = document.createElement('span');
+      del.className = 'h-del';
+      del.textContent = '✕';
+      del.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        if (!confirm(t('h.del.confirm'))) return;
+        histDelete(e);
+        renderHistoryList(histList());
+      });
+      b.appendChild(del);
+      b.addEventListener('click', () => openHistory(e));
       box.appendChild(b);
     });
   }
 
-  async function openHistory(idx) {
-    const e = histList()[idx];
+  async function openHistory(e) {
     if (!e) return;
     if (e.type === 'saju') {
       const reading = await renderSajuResult(e);
@@ -1333,7 +1422,8 @@
   $('historyClear').addEventListener('click', () => {
     if (confirm(t('h.clear.confirm'))) {
       localStorage.removeItem(HKEY);
-      renderHistory();
+      histApi('hist_clear', {});
+      renderHistoryList([]);
     }
   });
 

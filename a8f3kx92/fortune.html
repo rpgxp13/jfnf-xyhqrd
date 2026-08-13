@@ -500,6 +500,18 @@
     .h-item .hi { font-size: 24px; }
     .h-item .ht { font-size: 14px; font-weight: 800; }
     .h-item .hd { font-size: 11.5px; color: #8a7a63; margin-top: 2px; }
+    .h-item .h-del {
+      margin-left: auto;
+      flex: none;
+      width: 30px; height: 30px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%;
+      color: #c9a0a0;
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .h-item .h-del:hover { background: #ffe9f0; color: #e0708f; }
+    .h-sync-note { font-size: 12px; color: #b0a08a; font-weight: 600; text-align: center; margin-top: 8px; animation: aiPulse 1.6s ease-in-out infinite; }
     .h-empty { font-size: 13.5px; color: #8a7a63; text-align: center; padding: 30px 0; }
     .h-clear { background: none; border: none; font-family: inherit; font-size: 12px; color: #b0a08a; text-decoration: underline; cursor: pointer; margin-top: 6px; }
 
@@ -761,6 +773,7 @@
       <div class="sub" data-i18n="h.sub">최근 30개까지 이 기기에 저장돼요</div>
       <div style="height:12px"></div>
       <div id="historyList"></div>
+      <div class="h-sync-note" id="histSyncNote" style="display:none" data-i18n="h.sync">공유 기록 불러오는 중…</div>
       <button class="h-clear" id="historyClear" data-i18n="h.clear">기록 전체 삭제</button>
     </div>
   </div>

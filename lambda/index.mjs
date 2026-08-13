@@ -15,11 +15,25 @@
  */
 
 import Anthropic from "@anthropic-ai/sdk";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  QueryCommand,
+  PutCommand,
+  DeleteCommand,
+  BatchWriteCommand,
+} from "@aws-sdk/lib-dynamodb"; // bundled in the nodejs Lambda runtime
 
 // Fall back to a placeholder so the module never crashes at init when the
 // key isn't set yet — requests then fail with 401 and return reading_failed,
 // which the web page silently ignores.
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || "unset" });
+
+const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}), {
+  marshallOptions: { removeUndefinedValues: true },
+});
+const HIST_TABLE = process.env.HIST_TABLE || "fortune-history";
+const HIST_LIMIT = 30;
 
 const MODEL = process.env.MODEL || "claude-opus-5";
 const EFFORT = process.env.EFFORT || "low";
@@ -176,8 +190,71 @@ export const handler = async (event) => {
   }
 
   const { kind, payload } = body;
-  if (!["saju", "tarot", "tarot_overall"].includes(kind) || !payload || (event.body || "").length > 20000) {
+  const KINDS = ["saju", "tarot", "tarot_overall", "hist_list", "hist_put", "hist_delete", "hist_clear"];
+  const isHist = typeof kind === "string" && kind.startsWith("hist_");
+  const maxBody = isHist ? 200000 : 20000; // history entries carry full bilingual AI text
+  if (!KINDS.includes(kind) || !payload || (event.body || "").length > maxBody) {
     return { statusCode: 400, headers, body: JSON.stringify({ error: "invalid_request" }) };
+  }
+
+  /* ── shared history (DynamoDB) — lets both devices see the same records ── */
+  if (isHist) {
+    const space = payload.space;
+    if (typeof space !== "string" || !space || space.length > 64) {
+      return { statusCode: 400, headers, body: JSON.stringify({ error: "invalid_space" }) };
+    }
+    try {
+      if (kind === "hist_list") {
+        const q = await ddb.send(new QueryCommand({
+          TableName: HIST_TABLE,
+          KeyConditionExpression: "#s = :s",
+          ExpressionAttributeNames: { "#s": "space" },
+          ExpressionAttributeValues: { ":s": space },
+          ScanIndexForward: false, // newest first
+          Limit: HIST_LIMIT,
+        }));
+        return { statusCode: 200, headers, body: JSON.stringify({ items: (q.Items || []).map((it) => it.entry) }) };
+      }
+      if (kind === "hist_put") {
+        const entry = payload.entry;
+        if (!entry || typeof entry.ts !== "number" || typeof entry.type !== "string") {
+          return { statusCode: 400, headers, body: JSON.stringify({ error: "invalid_entry" }) };
+        }
+        await ddb.send(new PutCommand({ TableName: HIST_TABLE, Item: { space, ts: entry.ts, entry } }));
+        return { statusCode: 200, headers, body: JSON.stringify({ ok: true }) };
+      }
+      if (kind === "hist_delete") {
+        if (typeof payload.ts !== "number") {
+          return { statusCode: 400, headers, body: JSON.stringify({ error: "invalid_entry" }) };
+        }
+        await ddb.send(new DeleteCommand({ TableName: HIST_TABLE, Key: { space, ts: payload.ts } }));
+        return { statusCode: 200, headers, body: JSON.stringify({ ok: true }) };
+      }
+      // hist_clear: query keys and batch-delete (25 per batch)
+      let keys = [];
+      let lastKey;
+      do {
+        const q = await ddb.send(new QueryCommand({
+          TableName: HIST_TABLE,
+          KeyConditionExpression: "#s = :s",
+          ExpressionAttributeNames: { "#s": "space", "#t": "ts" },
+          ExpressionAttributeValues: { ":s": space },
+          ProjectionExpression: "#s, #t",
+          ExclusiveStartKey: lastKey,
+        }));
+        keys = keys.concat((q.Items || []).map((it) => ({ space: it.space, ts: it.ts })));
+        lastKey = q.LastEvaluatedKey;
+      } while (lastKey);
+      for (let i = 0; i < keys.length; i += 25) {
+        await ddb.send(new BatchWriteCommand({
+          RequestItems: { [HIST_TABLE]: keys.slice(i, i + 25).map((k) => ({ DeleteRequest: { Key: k } })) },
+        }));
+      }
+      return { statusCode: 200, headers, body: JSON.stringify({ ok: true, deleted: keys.length }) };
+    } catch (err) {
+      console.error("history error:", err?.message);
+      return { statusCode: 502, headers, body: JSON.stringify({ error: "history_failed" }) };
+    }
   }
 
   const system = kind === "saju" ? SAJU_SYSTEM : kind === "tarot_overall" ? TAROT_OVERALL_SYSTEM : TAROT_SYSTEM;
