@@ -1,7 +1,34 @@
-# Fortune LLM 프록시 — AWS Lambda 배포 가이드
+# Fortune LLM 프록시 — AWS Lambda
 
 사주/타로 상세 풀이를 Claude API로 생성해주는 프록시입니다.
 API 키는 Lambda 환경변수에만 저장되고 브라우저에 노출되지 않습니다.
+
+## ✅ 현재 배포 상태 (2026-08-13)
+
+이미 배포 완료되어 페이지에 연결돼 있습니다:
+
+- 함수: `fortune-llm-proxy` (ap-northeast-2, Node.js 22, arm64)
+- 엔드포인트: `https://bzgjaonngg.execute-api.ap-northeast-2.amazonaws.com/` (API Gateway HTTP API `bzgjaonngg`)
+  - ※ Lambda Function URL은 이 계정에서 익명 호출이 403으로 차단되어 API Gateway를 사용함
+- `fortune.js`의 `LLM_ENDPOINT`에 연결됨
+
+**남은 한 가지 — API 키 설정** (키는 직접 넣어주세요):
+
+```bash
+aws lambda update-function-configuration --function-name fortune-llm-proxy --environment "Variables={ANTHROPIC_API_KEY=sk-ant-여기에_키,MODEL=claude-opus-5,EFFORT=low}"
+```
+
+키를 설정하기 전까지는 상세 풀이 호출이 조용히 실패하고 정적 풀이만 표시됩니다 (페이지는 정상 동작).
+설정 후 아래 "테스트" 섹션의 curl로 확인하세요.
+
+## 응답 형식
+
+- 사주: `{ "sections": { "personality", "wealth", "love", "forecast" } }` — 구조화 출력(json_schema)으로 보장
+- 타로: `{ "text": "..." }`
+
+---
+
+## (참고) 처음부터 다시 배포하는 방법
 
 ## 1. 배포 패키지 만들기 (로컬 PC)
 
@@ -55,12 +82,10 @@ Lambda가 실패하거나 URL이 없으면 기존 정적 풀이만 표시됩니�
 ## 5. 테스트
 
 ```bash
-curl -X POST "https://xxxx.lambda-url.....on.aws/" \
-  -H "Content-Type: application/json" \
-  -d '{"kind":"tarot","lang":"ko","payload":{"card":{"en":"The Sun","ko":"태양","arcana":"major","label":"XIX"},"reversed":false,"spread":"one","topic":"love","position":"pos.msg"}}'
+curl -X POST "https://bzgjaonngg.execute-api.ap-northeast-2.amazonaws.com/" -H "Content-Type: application/json" -d '{"kind":"tarot","lang":"ko","payload":{"card":{"en":"The Sun","ko":"태양","arcana":"major","label":"XIX"},"reversed":false,"spread":"one","topic":"love","position":"pos.msg"}}'
 ```
 
-`{"text":"..."}` 형태의 응답이 오면 성공입니다.
+`{"text":"..."}` 형태의 응답이 오면 성공입니다. (`{"error":"reading_failed"}`면 API 키 미설정/오류 상태)
 
 ## 비용·보안 참고
 

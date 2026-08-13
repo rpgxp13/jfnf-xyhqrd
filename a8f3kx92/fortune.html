@@ -190,6 +190,36 @@
     .ebar-row .ecnt { width: 20px; font-size: 12.5px; font-weight: 700; text-align: right; }
     .enote { font-size: 13.5px; line-height: 1.7; margin-top: 12px; background: #fdf6e9; border-radius: 12px; padding: 11px 13px; }
     .enote + .enote { margin-top: 8px; }
+    .enote.ai { background: #f4edfd; }
+
+    /* yin-yang balance bar */
+    .yy-row { display: flex; align-items: center; gap: 8px; margin: 10px 0 4px; }
+    .yy-row .yy-label { font-size: 12.5px; font-weight: 700; width: 52px; }
+    .yy-track { flex: 1; height: 16px; border-radius: 999px; overflow: hidden; display: flex; background: rgba(90,70,50,0.08); }
+    .yy-track .yy-yang { background: linear-gradient(90deg, #f6b46a, #ef8f5e); height: 100%; transition: width 0.8s cubic-bezier(0.22,1,0.36,1); }
+    .yy-track .yy-yin  { background: linear-gradient(90deg, #7d9bc4, #5d7bab); height: 100%; transition: width 0.8s cubic-bezier(0.22,1,0.36,1); }
+    .yy-cnt { font-size: 12px; font-weight: 700; }
+
+    /* daeun (10-year luck) chips */
+    .daeun-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 12px; padding-bottom: 6px; }
+    .daeun-row { display: flex; gap: 8px; width: max-content; }
+    .daeun-chip {
+      min-width: 64px;
+      text-align: center;
+      background: #fdf6e9;
+      border-radius: 12px;
+      padding: 9px 8px;
+      border: 2px solid transparent;
+    }
+    .daeun-chip .da { font-size: 10.5px; color: #8a7a63; font-weight: 700; }
+    .daeun-chip .dgz { font-size: 17px; font-weight: 700; margin-top: 2px; font-family: 'Malgun Gothic', serif; }
+    .daeun-chip .dko { font-size: 11px; font-weight: 700; color: #8a7a63; }
+    .daeun-chip.now { border-color: #e0708f; background: #ffe9f0; }
+    .daeun-chip.now .da { color: #e0708f; }
+    .daeun-note { font-size: 12.5px; color: #8a7a63; margin-top: 10px; line-height: 1.6; }
+
+    .sec-body { font-size: 14px; line-height: 1.75; margin-top: 10px; }
+    .sec-body .enote { margin-top: 10px; }
 
     /* ── Tarot ──────────────────────── */
     .topic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
@@ -555,9 +585,30 @@
       <div class="ilgan-text" id="sjrIlganText"></div>
     </div>
     <div class="card">
-      <h2 data-i18n="r.elements">오행 분포</h2>
+      <h2 data-i18n="r.yinyang">음양오행</h2>
+      <div id="sjrYinYang"></div>
       <div id="sjrBars"></div>
       <div id="sjrNotes"></div>
+    </div>
+    <div class="card">
+      <h2 data-i18n="r.daeun">대운 (10년 주기 흐름)</h2>
+      <div id="sjrDaeun"></div>
+    </div>
+    <div class="card">
+      <h2 data-i18n="r.persona">성격 및 적성</h2>
+      <div class="sec-body" id="sjrPersona"></div>
+    </div>
+    <div class="card">
+      <h2 data-i18n="r.wealth">재물운</h2>
+      <div class="sec-body" id="sjrWealth"></div>
+    </div>
+    <div class="card">
+      <h2 data-i18n="r.love">애정 및 궁합</h2>
+      <div class="sec-body" id="sjrLove"></div>
+    </div>
+    <div class="card">
+      <h2 data-i18n="r.forecast">연간 · 월간 운세</h2>
+      <div class="sec-body" id="sjrForecast"></div>
     </div>
     <div class="disclaimer" data-i18n="disc">본 콘텐츠는 재미와 자기 성찰을 위한 것으로, 실제 미래를 예측하지 않습니다.</div>
     <div class="btn-row">

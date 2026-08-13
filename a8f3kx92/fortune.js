@@ -56,6 +56,20 @@
     'r.of':        ['{n}의 사주 명식', '{n}’s Four Pillars'],
     'r.ilgan':     ['당신의 일간은', 'Your day master is'],
     'r.elements':  ['오행 분포', 'Five Elements'],
+    'r.yinyang':   ['음양오행', 'Yin-Yang & Five Elements'],
+    'r.daeun':     ['대운 (10년 주기 흐름)', 'Daeun — 10-Year Luck Cycles'],
+    'r.persona':   ['성격 및 적성', 'Personality & Aptitude'],
+    'r.wealth':    ['재물운', 'Wealth Luck'],
+    'r.love':      ['애정 및 궁합', 'Love & Compatibility'],
+    'r.forecast':  ['연간 · 월간 운세', 'Yearly · Monthly Fortune'],
+    'yy.yang':     ['양 陽', 'Yang'],
+    'yy.yin':      ['음 陰', 'Yin'],
+    'd.now':       ['현재', 'now'],
+    'd.ageFmt':    ['{n}세~', 'age {n}+'],
+    'd.note.gender': ['입력 화면에서 성별을 선택하면 대운 흐름이 표시돼요.', 'Select a gender on the input form to see your 10-year luck cycles.'],
+    'd.note.approx': ['대운은 10년 단위로 바뀌는 인생의 큰 흐름이에요. 나이는 세는나이 기준입니다.', 'Daeun are the big 10-year currents of life. Ages are in traditional Korean counting.'],
+    'f.yearFmt':   ['올해 {gz}년에는 {t}', 'This year ({gz}), {t}'],
+    'f.monthFmt':  ['이번 달 {gz}월에는 {t}', 'This month ({gz} month), {t}'],
     'r.again':     ['다시 입력', 'New input'],
     'r.home':      ['처음으로', 'Home'],
     'p.year':  ['년주', 'Year'],
@@ -221,13 +235,11 @@
   }
 
   /* ═══════════ LLM integration (AWS Lambda proxy) ═══════════
-     Deploy /lambda (see lambda/README.md) and paste the Function URL here
-     to enable detailed AI readings, e.g.:
-       const LLM_ENDPOINT = 'https://xxxx.lambda-url.ap-northeast-2.on.aws/';
-     The endpoint receives { kind: 'saju'|'tarot', lang, payload } and
-     returns { text }. While it is null (or on any failure) the static
-     JSON templates below are used as-is, so the page always works. */
-  const LLM_ENDPOINT = null;
+     Deployed via API Gateway → Lambda "fortune-llm-proxy" (ap-northeast-2),
+     see lambda/README.md. Receives { kind: 'saju'|'tarot', lang, payload }
+     and returns { sections } (saju) / { text } (tarot). On any failure the
+     static JSON templates below are used as-is, so the page always works. */
+  const LLM_ENDPOINT = 'https://bzgjaonngg.execute-api.ap-northeast-2.amazonaws.com/';
 
   async function llmReading(kind, payload) {
     if (!LLM_ENDPOINT) return null;
@@ -238,8 +250,7 @@
         body: JSON.stringify({ kind, lang, payload }),
       });
       if (!r.ok) return null;
-      const j = await r.json();
-      return j.text || null;
+      return await r.json(); // { text } for tarot, { sections } for saju
     } catch { return null; }
   }
 
@@ -279,6 +290,50 @@
   const EL_EN = { '목': 'Wood', '화': 'Fire', '토': 'Earth', '금': 'Metal', '수': 'Water' };
   const GAN_EN_DESC = { '甲': 'Yang Wood', '乙': 'Yin Wood', '丙': 'Yang Fire', '丁': 'Yin Fire', '戊': 'Yang Earth', '己': 'Yin Earth', '庚': 'Yang Metal', '辛': 'Yin Metal', '壬': 'Yang Water', '癸': 'Yin Water' };
   const EL_ORDER = ['목', '화', '토', '금', '수'];
+
+  const GAN_LIST = '甲乙丙丁戊己庚辛壬癸';
+  const ZHI_LIST = '子丑寅卯辰巳午未申酉戌亥';
+  const YANG_GAN = '甲丙戊庚壬';
+  const YANG_ZHI = '子寅辰午申戌';
+  // five-element cycles: SHENG[x] = what x generates, KE[x] = what x controls
+  const SHENG = { '목': '화', '화': '토', '토': '금', '금': '수', '수': '목' };
+  const KE = { '목': '토', '토': '수', '수': '화', '화': '금', '금': '목' };
+
+  // ten-gods style relation of another element to the day master's element
+  function relationOf(dayEl, otherEl) {
+    if (otherEl === dayEl) return '비겁';
+    if (SHENG[otherEl] === dayEl) return '인성';
+    if (SHENG[dayEl] === otherEl) return '식상';
+    if (KE[otherEl] === dayEl) return '관성';
+    return '재성'; // KE[dayEl] === otherEl
+  }
+
+  function countYinYang(pillars) {
+    let yang = 0, yin = 0;
+    ['year', 'month', 'day', 'time'].forEach(k => {
+      const p = pillars[k];
+      if (!p) return;
+      YANG_GAN.includes(p[0]) ? yang++ : yin++;
+      YANG_ZHI.includes(p[1]) ? yang++ : yin++;
+    });
+    return { yang, yin };
+  }
+
+  /* approximate current year/month gan-zhi (arithmetic; year switches around
+     ipchun Feb 4, month branches follow solar months — close enough for a
+     light fortune reading) */
+  function currentGanZhi() {
+    const now = new Date();
+    const y = now.getFullYear(), m = now.getMonth() + 1, d = now.getDate();
+    let yy = y;
+    if (m < 2 || (m === 2 && d < 4)) yy = y - 1;
+    const yearGZ = GAN_LIST[(yy - 4) % 10] + ZHI_LIST[(yy - 4) % 12];
+    const FIRST_MONTH_STEM = { 0: 2, 5: 2, 1: 4, 6: 4, 2: 6, 7: 6, 3: 8, 8: 8, 4: 0, 9: 0 };
+    const offset = m >= 2 ? m - 2 : m + 10;
+    const stemIdx = (FIRST_MONTH_STEM[(yy - 4) % 10] + offset) % 10;
+    const monthGZ = GAN_LIST[stemIdx] + ZHI_LIST[m % 12];
+    return { yearGZ, monthGZ };
+  }
 
   const elName = (el) => lang === 'ko' ? el : EL_EN[el];
   const pillarReading = (g, z) => lang === 'ko' ? (GAN_KO[g] + ZHI_KO[z]) : (GAN_ROMA[g] + ZHI_ROMA[z].toLowerCase());
@@ -336,6 +391,7 @@
       cal: segVal($('calSeg')),
       leap: $('sjLeap').checked,
       country: segVal($('countrySeg')),
+      gender: segVal($('genderSeg')),
       y, m, d, hasTime, hh, mi,
     };
 
@@ -347,9 +403,10 @@
       const entry = {
         type: 'saju', ts: Date.now(),
         name: $('sjName').value.trim(),
-        gender: segVal($('genderSeg')),
+        gender: input.gender,
         in: input,
         pillars: saju.pillars,
+        daeun: saju.daeun,
       };
       histSave(entry);
       lastSajuEntry = entry;
@@ -386,6 +443,19 @@
     const s = shiftToCST(sy, sm, sd, hh, mi, utcOff);
     const lunarObj = window.Solar.fromYmdHms(s.y, s.m, s.d, s.hh, s.mi, 0).getLunar();
     const ec = lunarObj.getEightChar();
+
+    // 10-year luck cycles — direction depends on gender, so only when selected
+    let daeun = null;
+    if (input.gender === 'M' || input.gender === 'F') {
+      try {
+        const yun = ec.getYun(input.gender === 'M' ? 1 : 0);
+        daeun = yun.getDaYun()
+          .filter(dy => dy.getGanZhi())
+          .slice(0, 8)
+          .map(dy => ({ a: dy.getStartAge(), gz: dy.getGanZhi() }));
+      } catch (e) { daeun = null; }
+    }
+
     return {
       pillars: {
         year: ec.getYear(),
@@ -393,6 +463,7 @@
         day: ec.getDay(),
         time: input.hasTime ? ec.getTime() : null,
       },
+      daeun,
     };
   }
 
@@ -440,20 +511,59 @@
     });
     if (notes.length === 0) notes.push(en ? en.balance.balanced : data.balance.balanced);
 
+    const T = en || data; // localized text source for the new sections
+    const dayEl = GAN_EL[dayGan];
+
+    // yin-yang balance
+    const yy = countYinYang(pillars);
+    const yyText = yy.yang - yy.yin >= 2 ? T.yinyang.yang
+      : yy.yin - yy.yang >= 2 ? T.yinyang.yin : T.yinyang.balanced;
+
+    // wealth: the element the day master controls
+    const wealthEl = KE[dayEl];
+    const wc = counts[wealthEl];
+    const wealthKey = wc === 0 ? 'none' : wc >= 3 ? 'many' : 'some';
+    const wealthText = T.wealth[wealthKey].replace('{el}', elName(wealthEl));
+
+    // love: relation of the spouse seat (day branch) to the day master
+    const dayZhi = pillars.day[1];
+    const loveRel = relationOf(dayEl, ZHI_EL[dayZhi]);
+    const supportEl = Object.keys(SHENG).find(x => SHENG[x] === dayEl);
+    const loveText = T.love[loveRel] + ' ' + T.loveCompat.replace('{el}', elName(supportEl));
+
+    // yearly / monthly flow
+    const { yearGZ, monthGZ } = currentGanZhi();
+    const gzLabel = (gz) => `${gz}(${pillarReading(gz[0], gz[1])})`;
+    const yearText = tf2('f.yearFmt', { gz: gzLabel(yearGZ), t: T.flow[relationOf(dayEl, GAN_EL[yearGZ[0]])] });
+    const monthText = tf2('f.monthFmt', { gz: gzLabel(monthGZ), t: T.flow[relationOf(dayEl, GAN_EL[monthGZ[0]])] });
+
     // detailed AI reading when a backend is configured (no-op otherwise)
-    const llmText = await llmReading('saju', {
+    const llmBody = await llmReading('saju', {
       pillars, counts,
+      yinYang: yy,
+      daeun: entry.daeun || null,
+      current: { yearGZ, monthGZ },
       name: entry.name || null,
       gender: entry.gender || null,
       birth: describeBirth(entry),
     });
+    const llm = llmBody && (llmBody.sections || (llmBody.text ? { personality: llmBody.text } : null));
 
     return {
-      ilgan, counts, total, notes, llmText,
+      ilgan, counts, total, notes, llm,
+      yy, yyText,
+      aptText: T.aptitude[dayGan],
+      wealthText, loveText, yearText, monthText,
       colors: Object.fromEntries(EL_ORDER.map(el => [el, data.elements[el].color])),
       emojis: Object.fromEntries(EL_ORDER.map(el => [el, data.elements[el].emoji])),
       balanceNote: en ? en.balance.note : data.balance.note,
     };
+  }
+
+  function tf2(key, vars) {
+    let s = t(key);
+    Object.keys(vars).forEach(k => { s = s.replace('{' + k + '}', vars[k]); });
+    return s;
   }
 
   /* ═══════════ saju: result rendering ═══════════ */
@@ -502,8 +612,48 @@
 
     $('sjrNotes').innerHTML =
       reading.notes.map(n => `<div class="enote">${n}</div>`).join('') +
-      (reading.llmText ? `<div class="enote" style="background:#f4edfd">${reading.llmText}</div>` : '') +
       `<div class="enote" style="opacity:0.75">${reading.balanceNote}</div>`;
+
+    // yin-yang bar
+    const yyTotal = reading.yy.yang + reading.yy.yin;
+    const yangPct = yyTotal ? Math.round(reading.yy.yang / yyTotal * 100) : 50;
+    $('sjrYinYang').innerHTML = `
+      <div class="yy-row">
+        <span class="yy-label">${t('yy.yang')}</span>
+        <span class="yy-track"><span class="yy-yang" style="width:${yangPct}%"></span><span class="yy-yin" style="width:${100 - yangPct}%"></span></span>
+        <span class="yy-cnt">${reading.yy.yang} : ${reading.yy.yin}</span>
+      </div>
+      <div class="enote" style="margin-top:6px">${reading.yyText}</div>`;
+
+    // daeun (10-year luck cycles)
+    if (entry.daeun && entry.daeun.length) {
+      const nowYear = new Date().getFullYear();
+      const birthYear = entry.in ? entry.in.y : nowYear;
+      const age = nowYear - birthYear + 1; // traditional Korean counting
+      $('sjrDaeun').innerHTML = `
+        <div class="daeun-scroll"><div class="daeun-row">
+          ${entry.daeun.map(du => {
+            const isNow = age >= du.a && age < du.a + 10;
+            return `<div class="daeun-chip${isNow ? ' now' : ''}">
+              <div class="da">${isNow ? t('d.now') + ' · ' : ''}${tf2('d.ageFmt', { n: du.a })}</div>
+              <div class="dgz">${du.gz}</div>
+              <div class="dko">${pillarReading(du.gz[0], du.gz[1])}</div>
+            </div>`;
+          }).join('')}
+        </div></div>
+        <div class="daeun-note">${t('d.note.approx')}</div>`;
+    } else {
+      $('sjrDaeun').innerHTML = `<div class="daeun-note">${t('d.note.gender')}</div>`;
+    }
+
+    // interpretation sections (static + optional AI detail)
+    const ai = reading.llm || {};
+    const aiNote = (s) => s ? `<div class="enote ai">${s}</div>` : '';
+    $('sjrPersona').innerHTML = reading.aptText + aiNote(ai.personality);
+    $('sjrWealth').innerHTML = reading.wealthText + aiNote(ai.wealth);
+    $('sjrLove').innerHTML = reading.loveText + aiNote(ai.love);
+    $('sjrForecast').innerHTML =
+      `<div>${reading.yearText}</div><div style="margin-top:8px">${reading.monthText}</div>` + aiNote(ai.forecast);
   }
 
   $('sjrAgain').addEventListener('click', () => { backOverride = null; show('v-saju-input'); });
@@ -738,12 +888,13 @@
       result.topicText = texts[TOPIC_FIELD[topic]];
     }
     // detailed AI reading when a backend is configured (no-op otherwise)
-    result.llmText = await llmReading('tarot', {
+    const llmBody = await llmReading('tarot', {
       card: { en: card.en, ko: card.ko, arcana: card.arcana, suit: card.suit, label: card.label },
       reversed: pick.rev,
       topic, spread,
       position: POS_KEYS[spread][posIndex],
     });
+    result.llmText = llmBody ? llmBody.text || null : null;
     return result;
   }
 

@@ -71,5 +71,42 @@
   "balance": {
     "balanced": "Your five elements are evenly spread. You can draw on different energies as situations demand — a well-balanced, all-around configuration that holds its own anywhere.",
     "note": "The element chart shows the mix of energies in your eight characters (six, if birth time is unknown). More or less of an element isn't good or bad — it shows the direction of your character."
+  },
+  "yinyang": {
+    "yang": "Yang energy runs strong in your chart. You come alive when moving, expressing, and pushing forward — an action type.",
+    "yin": "Yin energy runs strong in your chart. Your real power shows when you observe calmly and build substance — a deep-rooted type.",
+    "balanced": "Yin and yang are beautifully balanced. You have a natural sense of when to step forward and when to hold back."
+  },
+  "aptitude": {
+    "甲": "Strong in work that needs leadership and vision, pioneering new ground — a great fit for founding, planning, and education.",
+    "乙": "Strong in work that needs flexibility and finesse — a great fit for design, counseling, service, and negotiation.",
+    "丙": "Strong in work that puts you in front of people — a great fit for media, marketing, sales, and anything with a stage.",
+    "丁": "Strong in work that digs deep and refines — a great fit for research, the arts, psychology, and specialized crafts.",
+    "戊": "Strong in work that holds the center and mediates — a great fit for management, real estate, administration, and arbitration.",
+    "己": "Strong in work that nurtures and completes — a great fit for education, culinary arts, finance, and operations.",
+    "庚": "Strong in work that needs decisiveness and drive — a great fit for engineering, manufacturing, sports, and structural reform.",
+    "辛": "Strong in work that needs precision and polish — a great fit for finance, beauty, quality control, and the arts.",
+    "壬": "Strong in work that needs big-picture thinking and ideas — a great fit for strategy, trade, IT, and content planning.",
+    "癸": "Strong in work that needs insight and empathy — a great fit for research, writing, counseling, and data analysis."
+  },
+  "wealth": {
+    "none": "The wealth element ({el}) isn't visible on the surface of your chart. That doesn't mean money won't gather — you're the type who thrives on steady income structures rather than one big windfall. Clear saving rules are your best investment strategy.",
+    "some": "The wealth element ({el}) sits comfortably in your chart. Yours is an honest money luck that returns what you put in — the deeper your professional expertise, the bigger your income vessel grows.",
+    "many": "The wealth element ({el}) is abundant. You have a good sense for the flow of money and chances come often, but it can leave as easily as it arrives — put guardrails in place and it builds into real wealth."
+  },
+  "love": {
+    "비겁": "The spouse seat (day branch) holds the same energy as you. You love most comfortably with someone like a best friend — respecting each other's space is the secret to lasting long.",
+    "식상": "The spouse seat (day branch) holds the energy you nurture. You're happiest when expressing and caring — the more freely you show affection, the more the relationship blooms.",
+    "재성": "The spouse seat (day branch) holds the energy you lead. You're proactive in love and want to take responsibility — lead the way, but wait for their pace and it's perfect.",
+    "관성": "The spouse seat (day branch) holds the energy that steadies you. You're drawn to someone dependable — love deepens with a partner who gives you a sense of security.",
+    "인성": "The spouse seat (day branch) holds the energy that embraces you. Your heart opens to warm, caring love — return what you receive and the bond ripens."
+  },
+  "loveCompat": "You match especially well with someone carrying {el} energy — it feeds and uplifts yours.",
+  "flow": {
+    "인성": "an energy of mentors and learning flows in. Study, credentials, and help from seniors become your strength.",
+    "식상": "an energy of expression and results flows in. Creating and showing your work bears fruit.",
+    "재성": "an energy of wealth flows in. Income opportunities increase — gather them with a practical hand.",
+    "관성": "an energy of responsibility and recognition flows in. The load may feel heavier, but so is the growth and acknowledgment.",
+    "비겁": "an energy of competition and camaraderie flows in. More will happen alongside others — make sure to claim your share."
   }
 }
