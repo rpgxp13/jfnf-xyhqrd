@@ -180,6 +180,7 @@
         <button class="who-chip" data-who="HyeonWoo"><span class="we">🤵</span>HyeonWoo</button>
         <button class="who-chip" data-who="Jam"><span class="we">👰</span>Jam</button>
       </div>
+      <div class="sync-note" id="introSync" style="display:none"></div>
       <div style="height:8px"></div>
       <button class="cta" id="startBtn" disabled></button>
     </div>
@@ -259,6 +260,7 @@
         edit: ['✏️ 답변 수정하기 (결과 다시 계산)', '✏️ Edit my answers (recalculate)'],
         home: ['메인으로', 'Home'],
         saving: ['결과를 공유 저장소에 남기는 중…', 'Saving to your shared space…'],
+        checking: ['저장된 결과 확인 중…', 'Checking for a saved result…'],
         ans: [
           ['전혀 아니다', 'Strongly disagree'],
           ['아니다', 'Disagree'],
@@ -441,6 +443,8 @@
         } else {
           myEntry = { type: 'phbti', ts: Date.now(), who, axes, letters };
         }
+        myEntry.answers = answers.slice(); // stored so editing works on any device later
+        $('editBtn').style.display = '';
         renderResult(myEntry);
         show('v-result');
         $('syncNote').textContent = t(STR.saving);
@@ -503,13 +507,46 @@
         $('cmpBody').innerHTML = html;
       }
 
+      /* ═══ open an existing result directly ═══ */
+      const WHO_KEY = SPACE + '_who';
+      let suppressAuto = false; // "start over" returns to the intro without bouncing back
+
+      async function loadExisting(w) {
+        const body = await histApi('hist_list', {});
+        return body && Array.isArray(body.items)
+          ? body.items.find(e => e.type === 'phbti' && e.who === w) : null;
+      }
+
+      function openEntry(entry) {
+        myEntry = entry;
+        who = entry.who;
+        if (Array.isArray(entry.answers) && entry.answers.length === Q.length) {
+          entry.answers.forEach((v, i) => { answers[i] = v; });
+          $('editBtn').style.display = '';
+        } else {
+          answers.fill(null); // legacy entry without answers: only a fresh retake makes sense
+          $('editBtn').style.display = 'none';
+        }
+        renderResult(entry);
+        show('v-result');
+        renderCompare();
+      }
+
       /* ═══ events ═══ */
       document.querySelectorAll('.who-chip').forEach(b => {
         b.addEventListener('click', () => {
           document.querySelectorAll('.who-chip').forEach(x => x.classList.remove('sel'));
           b.classList.add('sel');
           who = b.dataset.who;
+          localStorage.setItem(WHO_KEY, who);
           $('startBtn').disabled = false;
+          if (suppressAuto) return;
+          $('introSync').textContent = t(STR.checking);
+          $('introSync').style.display = 'block';
+          loadExisting(who).then(e => {
+            $('introSync').style.display = 'none';
+            if (e && who === b.dataset.who && $('v-intro').classList.contains('on')) openEntry(e);
+          });
         });
       });
 
@@ -541,6 +578,7 @@
         idx = 0;
         answers.fill(null);
         myEntry = null;
+        suppressAuto = true; // deliberate restart: don't bounce back to the old result
         renderIntro();
         show('v-intro');
       });
@@ -554,7 +592,13 @@
         if ($('v-result').classList.contains('on') && myEntry) { renderResult(myEntry); renderCompare(); }
       });
 
+      /* init — remember who used this device and reopen their result */
       renderIntro();
+      const savedWho = localStorage.getItem(WHO_KEY);
+      if (savedWho) {
+        const chip = document.querySelector('.who-chip[data-who="' + savedWho + '"]');
+        if (chip) chip.click();
+      }
     })();
   </script>
 </body>
