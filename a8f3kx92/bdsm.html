@@ -156,11 +156,23 @@
     .arch-card .ad { font-size: 12.5px; color: #8a7a63; line-height: 1.6; margin-top: 3px; }
     .arch-card.rank1 { background: #ffe9f0; border: 2px solid #ef8fae; }
 
+    .rbar-item { cursor: pointer; }
     .rbar-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
     .rbar-row .rn { width: 118px; font-size: 12px; font-weight: 700; flex: none; }
     .rbar-row .rt { flex: 1; height: 13px; background: rgba(120, 60, 70, 0.08); border-radius: 999px; overflow: hidden; }
-    .rbar-row .rf { height: 100%; border-radius: 999px; width: 0; transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1); }
+    .rbar-row .rf { display: block; height: 100%; border-radius: 999px; width: 0; transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1); }
     .rbar-row .rp { width: 38px; font-size: 12px; font-weight: 800; text-align: right; flex: none; }
+    .rbar-item .rdesc {
+      display: none;
+      font-size: 12.5px;
+      color: #8a7a63;
+      line-height: 1.65;
+      background: #fdf1e9;
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin: 7px 0 3px;
+    }
+    .rbar-item.open .rdesc { display: block; }
 
     /* compare */
     .cmp-head { display: flex; justify-content: space-between; font-size: 12px; font-weight: 800; margin-bottom: 4px; }
@@ -168,7 +180,7 @@
     .cmp-row .cn { font-size: 12px; font-weight: 700; margin-bottom: 3px; }
     .cmp-bars { display: flex; flex-direction: column; gap: 3px; }
     .cmp-bars .ct { height: 9px; background: rgba(120, 60, 70, 0.08); border-radius: 999px; overflow: hidden; position: relative; }
-    .cmp-bars .cf { height: 100%; border-radius: 999px; }
+    .cmp-bars .cf { display: block; height: 100%; border-radius: 999px; }
     .cmp-bars .cf.me { background: linear-gradient(90deg, #ef8fae, #e0708f); }
     .cmp-bars .cf.you { background: linear-gradient(90deg, #8fb4d9, #6a93c4); }
     .cmp-note { font-size: 12px; color: #a08a75; margin-top: 10px; line-height: 1.6; }
@@ -222,6 +234,8 @@
     </div>
     <div class="card">
       <h2 id="rAllTitle"></h2>
+      <div class="sub" id="rAllSub"></div>
+      <div style="height:4px"></div>
       <div id="rBars"></div>
     </div>
     <div class="card" id="cmpCard" style="display:none">
@@ -263,6 +277,7 @@
         rTitle: ['{w}의 성향 결과', '{w}’s Results'],
         rSub: ['상위 성향 TOP 3', 'Top 3 leanings'],
         rAll: ['전체 성향 분포', 'Full breakdown'],
+        rAllSub: ['각 성향을 누르면 어떤 성향인지 설명이 나와요', 'Tap any leaning to read what it means'],
         cmpTitle: ['둘이 비교하기 💞', 'Side by Side 💞'],
         cmpSub: ['{a} vs {b} — 최근 결과 기준', '{a} vs {b} — latest results'],
         cmpNone: ['{b}의 결과가 아직 없어요. 먼저 하고 자랑해 보세요 😏', 'No results from {b} yet. Finish first and brag 😏'],
@@ -500,10 +515,13 @@
       }
 
       function barRow(a, pct) {
-        return '<div class="rbar-row">'
+        return '<div class="rbar-item">'
+          + '<div class="rbar-row">'
           + '<span class="rn">' + a.e + ' ' + t(a.n) + '</span>'
           + '<span class="rt"><span class="rf" data-w="' + pct + '" style="background:' + a.c + '"></span></span>'
-          + '<span class="rp">' + pct + '%</span></div>';
+          + '<span class="rp">' + pct + '%</span></div>'
+          + '<div class="rdesc">' + t(a.d) + '</div>'
+          + '</div>';
       }
 
       function renderResult(entry) {
@@ -511,6 +529,7 @@
         $('rTitle').textContent = t(STR.rTitle).replace('{w}', entry.who);
         $('rSub').textContent = t(STR.rSub);
         $('rAllTitle').textContent = t(STR.rAll);
+        $('rAllSub').textContent = t(STR.rAllSub);
         $('rDisc').textContent = t(STR.disc);
         $('againBtn').textContent = t(STR.again);
         $('homeBtn').textContent = t(STR.home);
@@ -521,6 +540,9 @@
           + '<span class="ap" style="color:' + x.a.c + '">' + x.p + '%</span></div>'
         ).join('');
         $('rBars').innerHTML = sorted.map(x => barRow(x.a, x.p)).join('');
+        document.querySelectorAll('#rBars .rbar-item').forEach(el => {
+          el.addEventListener('click', () => el.classList.toggle('open'));
+        });
         requestAnimationFrame(() => {
           document.querySelectorAll('#rBars .rf').forEach(f => { f.style.width = f.dataset.w + '%'; });
         });
