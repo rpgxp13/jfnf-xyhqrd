@@ -220,7 +220,10 @@
       <div class="prog-num" id="progNum"></div>
       <div class="q-text" id="qText"></div>
       <div class="ans-col" id="ansCol"></div>
-      <button class="q-back" id="qBack"></button>
+      <div style="display:flex; justify-content:space-between; align-items:center">
+        <button class="q-back" id="qBack"></button>
+        <button class="q-back" id="qNext" style="visibility:hidden"></button>
+      </div>
     </div>
   </div>
 
@@ -246,6 +249,7 @@
     </div>
     <div class="sync-note" id="syncNote" style="display:none"></div>
     <div class="disclaimer" id="rDisc"></div>
+    <button class="ghost" id="editBtn" style="width:100%; margin-bottom:10px"></button>
     <div class="btn-row">
       <button class="ghost" id="againBtn"></button>
       <button class="cta" style="flex:1" id="homeBtn"></button>
@@ -283,7 +287,9 @@
         cmpNone: ['{b}의 결과가 아직 없어요. 먼저 하고 자랑해 보세요 😏', 'No results from {b} yet. Finish first and brag 😏'],
         cmpHot: ['둘 다 높은 성향: {list} — 오늘 밤 대화 주제로 어떨까요?', 'You both scored high on: {list} — tonight’s conversation topic?'],
         cmpFit: ['찰떡 조합: {list}', 'Perfect matches: {list}'],
-        again: ['다시 하기', 'Retake'],
+        again: ['처음부터 다시', 'Start over'],
+        edit: ['✏️ 답변 수정하기 (결과 다시 계산)', '✏️ Edit my answers (recalculate)'],
+        next: ['다음 →', 'Next →'],
         home: ['메인으로', 'Home'],
         saving: ['결과를 공유 저장소에 남기는 중…', 'Saving to your shared space…'],
         me: ['나', 'Me'],
@@ -463,6 +469,8 @@
         $('qText').textContent = (idx + 1) + '. ' + (lang === 'ko' ? q[0] : q[1]);
         $('qBack').textContent = t(STR.back);
         $('qBack').style.visibility = idx > 0 ? 'visible' : 'hidden';
+        $('qNext').textContent = t(STR.next);
+        $('qNext').style.visibility = answers[idx] !== null ? 'visible' : 'hidden';
         const col = $('ansCol');
         col.innerHTML = '';
         col.dataset.lock = ''; // re-armed for the new question
@@ -500,10 +508,16 @@
         return scores;
       }
 
+      let finishing = false;
       async function finish() {
-        if (myEntry) return; // already finished (double-tap guard)
+        if (finishing) return; // double-tap guard
+        finishing = true;
         const scores = computeScores(answers);
-        myEntry = { type: 'bdsm', ts: Date.now(), who, scores };
+        if (myEntry) {
+          myEntry.scores = scores; // edited answers: recalc, keep identity/ts (server upserts)
+        } else {
+          myEntry = { type: 'bdsm', ts: Date.now(), who, scores };
+        }
         renderResult(myEntry);
         show('v-result');
         // save to the shared store, then look up the partner's latest result
@@ -512,6 +526,7 @@
         await histApi('hist_put', { entry: myEntry });
         await renderCompare();
         $('syncNote').style.display = 'none';
+        finishing = false;
       }
 
       function barRow(a, pct) {
@@ -531,6 +546,7 @@
         $('rAllTitle').textContent = t(STR.rAll);
         $('rAllSub').textContent = t(STR.rAllSub);
         $('rDisc').textContent = t(STR.disc);
+        $('editBtn').textContent = t(STR.edit);
         $('againBtn').textContent = t(STR.again);
         $('homeBtn').textContent = t(STR.home);
         $('rTop3').innerHTML = sorted.slice(0, 3).map((x, i) =>
@@ -610,6 +626,19 @@
 
       $('qBack').addEventListener('click', () => {
         if (idx > 0) { idx--; renderQuestion(); }
+      });
+      $('qNext').addEventListener('click', () => {
+        if (answers[idx] === null) return;
+        if (idx < Q.length - 1) { idx++; renderQuestion(); }
+        else finish();
+      });
+
+      /* revisit the questions with previous answers preselected; finishing
+         again recalculates and overwrites the same shared entry */
+      $('editBtn').addEventListener('click', () => {
+        idx = 0;
+        renderQuestion();
+        show('v-test');
       });
 
       $('againBtn').addEventListener('click', () => {
