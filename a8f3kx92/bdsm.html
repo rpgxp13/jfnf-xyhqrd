@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Chemistry 🔥</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      min-height: 100%;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif;
+      background: linear-gradient(180deg, #f0c6d4 0%, #f3ddd3 55%, #f6ecd9 100%);
+      color: #5a4632;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 18px 14px 44px;
+    }
+
+    .top {
+      width: min(94vw, 460px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      gap: 8px;
+    }
+    .nav-btn {
+      appearance: none;
+      border: none;
+      background: rgba(255, 255, 255, 0.75);
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      color: #6b4a3a;
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(90, 70, 50, 0.10);
+      text-decoration: none;
+    }
+    .top .page-title { font-size: 16px; font-weight: 800; flex: 1; text-align: center; }
+
+    .view { width: min(94vw, 460px); display: none; flex-direction: column; align-items: center; }
+    .view.on { display: flex; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; } }
+
+    .card {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 22px;
+      padding: 22px 20px;
+      box-shadow: 0 8px 26px rgba(120, 60, 70, 0.14);
+      margin-bottom: 14px;
+    }
+    .card h2 { font-size: 17px; margin-bottom: 4px; }
+    .card .sub { font-size: 12.5px; color: #8a7a63; }
+
+    .cta {
+      width: 100%;
+      appearance: none;
+      border: none;
+      border-radius: 16px;
+      padding: 14px;
+      background: linear-gradient(135deg, #ef8fae, #ffb98a);
+      color: #5c3030;
+      font-family: inherit;
+      font-size: 15.5px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(230, 100, 130, 0.35);
+      transition: transform 0.12s ease;
+    }
+    .cta:active { transform: scale(0.97); }
+    .cta:disabled { opacity: 0.45; }
+    .ghost {
+      appearance: none;
+      border: none;
+      border-radius: 16px;
+      padding: 14px 18px;
+      background: rgba(255, 255, 255, 0.8);
+      color: #6b4a3a;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-row { display: flex; gap: 10px; width: 100%; }
+
+    /* intro */
+    .intro-emoji { font-size: 54px; text-align: center; margin: 6px 0 10px; }
+    .who-row { display: flex; gap: 10px; margin: 14px 0 6px; }
+    .who-chip {
+      flex: 1;
+      border: 2.5px solid transparent;
+      border-radius: 16px;
+      padding: 16px 10px;
+      background: #fdf1e9;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 800;
+      color: #6b4a3a;
+      cursor: pointer;
+      text-align: center;
+    }
+    .who-chip.sel { border-color: #ef8fae; background: #ffe9f0; }
+    .who-chip .we { font-size: 26px; display: block; margin-bottom: 4px; }
+
+    /* test */
+    .prog-track { width: 100%; height: 8px; border-radius: 999px; background: rgba(120, 60, 70, 0.10); overflow: hidden; margin-bottom: 8px; }
+    .prog-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #ef8fae, #ffb98a); transition: width 0.25s ease; }
+    .prog-num { font-size: 11.5px; color: #a08a75; font-weight: 700; text-align: right; margin-bottom: 14px; }
+    .q-text { font-size: 17px; font-weight: 800; line-height: 1.6; min-height: 84px; display: flex; align-items: center; }
+    .ans-col { display: flex; flex-direction: column; gap: 9px; margin-top: 16px; }
+    .ans-btn {
+      width: 100%;
+      border: 2px solid transparent;
+      border-radius: 14px;
+      padding: 13px 16px;
+      background: #fdf1e9;
+      font-family: inherit;
+      font-size: 14.5px;
+      font-weight: 700;
+      color: #6b4a3a;
+      cursor: pointer;
+      text-align: left;
+      transition: transform 0.1s ease;
+    }
+    .ans-btn:active { transform: scale(0.98); }
+    .ans-btn.sel { border-color: #ef8fae; background: #ffe9f0; }
+    .q-back { margin-top: 12px; align-self: flex-start; background: none; border: none; font-family: inherit; font-size: 12.5px; font-weight: 700; color: #a08a75; cursor: pointer; text-decoration: underline; }
+
+    /* result */
+    .top3 { display: flex; flex-direction: column; gap: 10px; }
+    .arch-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: #fdf1e9;
+      border-radius: 16px;
+      padding: 14px 16px;
+    }
+    .arch-card .ae { font-size: 34px; }
+    .arch-card .an { font-size: 15px; font-weight: 800; }
+    .arch-card .ap { font-size: 20px; font-weight: 800; margin-left: auto; }
+    .arch-card .ad { font-size: 12.5px; color: #8a7a63; line-height: 1.6; margin-top: 3px; }
+    .arch-card.rank1 { background: #ffe9f0; border: 2px solid #ef8fae; }
+
+    .rbar-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+    .rbar-row .rn { width: 118px; font-size: 12px; font-weight: 700; flex: none; }
+    .rbar-row .rt { flex: 1; height: 13px; background: rgba(120, 60, 70, 0.08); border-radius: 999px; overflow: hidden; }
+    .rbar-row .rf { height: 100%; border-radius: 999px; width: 0; transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1); }
+    .rbar-row .rp { width: 38px; font-size: 12px; font-weight: 800; text-align: right; flex: none; }
+
+    /* compare */
+    .cmp-head { display: flex; justify-content: space-between; font-size: 12px; font-weight: 800; margin-bottom: 4px; }
+    .cmp-row { margin-top: 9px; }
+    .cmp-row .cn { font-size: 12px; font-weight: 700; margin-bottom: 3px; }
+    .cmp-bars { display: flex; flex-direction: column; gap: 3px; }
+    .cmp-bars .ct { height: 9px; background: rgba(120, 60, 70, 0.08); border-radius: 999px; overflow: hidden; position: relative; }
+    .cmp-bars .cf { height: 100%; border-radius: 999px; }
+    .cmp-bars .cf.me { background: linear-gradient(90deg, #ef8fae, #e0708f); }
+    .cmp-bars .cf.you { background: linear-gradient(90deg, #8fb4d9, #6a93c4); }
+    .cmp-note { font-size: 12px; color: #a08a75; margin-top: 10px; line-height: 1.6; }
+
+    .disclaimer { font-size: 11.5px; color: #a08a75; text-align: center; line-height: 1.7; margin: 6px 0 12px; }
+    .sync-note { font-size: 12px; color: #b0a08a; font-weight: 600; text-align: center; margin: 4px 0 10px; animation: pulse 1.6s ease-in-out infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <a class="nav-btn" href="./index.html" id="backBtn">← Back</a>
+    <div class="page-title">🔥 Chemistry</div>
+    <button class="nav-btn" id="langBtn">EN</button>
+  </div>
+
+  <!-- intro -->
+  <div class="view on" id="v-intro">
+    <div class="card">
+      <div class="intro-emoji">🔥</div>
+      <h2 id="inTitle" style="text-align:center"></h2>
+      <div class="sub" id="inSub" style="text-align:center; margin-top:6px; line-height:1.7"></div>
+      <div class="who-row" id="whoRow">
+        <button class="who-chip" data-who="HyeonWoo"><span class="we">🤵</span>HyeonWoo</button>
+        <button class="who-chip" data-who="Jam"><span class="we">👰</span>Jam</button>
+      </div>
+      <div style="height:8px"></div>
+      <button class="cta" id="startBtn" disabled></button>
+    </div>
+    <div class="disclaimer" id="inDisc"></div>
+  </div>
+
+  <!-- test -->
+  <div class="view" id="v-test">
+    <div class="card">
+      <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
+      <div class="prog-num" id="progNum"></div>
+      <div class="q-text" id="qText"></div>
+      <div class="ans-col" id="ansCol"></div>
+      <button class="q-back" id="qBack"></button>
+    </div>
+  </div>
+
+  <!-- result -->
+  <div class="view" id="v-result">
+    <div class="card">
+      <h2 id="rTitle"></h2>
+      <div class="sub" id="rSub"></div>
+      <div style="height:12px"></div>
+      <div class="top3" id="rTop3"></div>
+    </div>
+    <div class="card">
+      <h2 id="rAllTitle"></h2>
+      <div id="rBars"></div>
+    </div>
+    <div class="card" id="cmpCard" style="display:none">
+      <h2 id="cmpTitle"></h2>
+      <div class="sub" id="cmpSub"></div>
+      <div style="height:10px"></div>
+      <div id="cmpBody"></div>
+    </div>
+    <div class="sync-note" id="syncNote" style="display:none"></div>
+    <div class="disclaimer" id="rDisc"></div>
+    <div class="btn-row">
+      <button class="ghost" id="againBtn"></button>
+      <button class="cta" style="flex:1" id="homeBtn"></button>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+      const $ = (id) => document.getElementById(id);
+
+      /* ═══ shared-history endpoint (same Lambda as fortune, separate space) ═══ */
+      const LLM_ENDPOINT = 'https://bzgjaonngg.execute-api.ap-northeast-2.amazonaws.com/';
+      const SPACE = 'hj-a8f3kx92-bdsm-v1';
+
+      /* ═══ i18n (shares the language key with the fortune page) ═══ */
+      const LKEY = 'fortune_lang';
+      let lang = localStorage.getItem(LKEY) === 'en' ? 'en' : 'ko';
+      const t = (pair) => pair[lang === 'ko' ? 0 : 1];
+
+      const STR = {
+        inTitle: ['우리만의 케미 테스트', 'Our Private Chemistry Test'],
+        inSub: ['30개의 질문에 솔직하게 답하면<br>침대 위 성향을 퍼센트로 알려드려요.<br>누가 답하는지 먼저 골라주세요 🤫',
+                'Answer 30 questions honestly and<br>see your bedroom leanings in percentages.<br>First, tell me who you are 🤫'],
+        start: ['솔직하게 시작하기 🔥', 'Start honestly 🔥'],
+        disc: ['재미와 대화를 위한 테스트예요. 모든 플레이는 언제나 서로의 합의, 그리고 세이프워드가 먼저입니다.',
+               'This is for fun and conversation. Real play always starts with consent — and a safeword.'],
+        back: ['← 이전 질문', '← Previous question'],
+        rTitle: ['{w}의 성향 결과', '{w}’s Results'],
+        rSub: ['상위 성향 TOP 3', 'Top 3 leanings'],
+        rAll: ['전체 성향 분포', 'Full breakdown'],
+        cmpTitle: ['둘이 비교하기 💞', 'Side by Side 💞'],
+        cmpSub: ['{a} vs {b} — 최근 결과 기준', '{a} vs {b} — latest results'],
+        cmpNone: ['{b}의 결과가 아직 없어요. 먼저 하고 자랑해 보세요 😏', 'No results from {b} yet. Finish first and brag 😏'],
+        cmpHot: ['둘 다 높은 성향: {list} — 오늘 밤 대화 주제로 어떨까요?', 'You both scored high on: {list} — tonight’s conversation topic?'],
+        cmpFit: ['찰떡 조합: {list}', 'Perfect matches: {list}'],
+        again: ['다시 하기', 'Retake'],
+        home: ['메인으로', 'Home'],
+        saving: ['결과를 공유 저장소에 남기는 중…', 'Saving to your shared space…'],
+        me: ['나', 'Me'],
+        ans: [
+          ['전혀 아니다', 'Strongly disagree'],
+          ['아니다', 'Disagree'],
+          ['보통이다', 'Neutral'],
+          ['그렇다', 'Agree'],
+          ['매우 그렇다', 'Strongly agree'],
+        ],
+      };
+
+      /* ═══ archetypes ═══ */
+      const ARCH = [
+        { k: 'dom', e: '👑', n: ['도미넌트', 'Dominant'], c: '#e0708f',
+          d: ['주도권을 쥐고 상대를 이끌 때 가장 빛나는 타입. 명령하고, 통제하고, 상대의 반응을 끌어내는 것에서 깊은 만족을 느껴요.',
+              'You shine most when you hold the reins — giving orders, staying in control, and drawing out your partner’s reactions.'] },
+        { k: 'sub', e: '🎀', n: ['서브미시브', 'Submissive'], c: '#7d9bc4',
+          d: ['믿는 사람에게 주도권을 넘기고 따를 때 편안함과 흥분을 동시에 느끼는 타입. 지시와 칭찬에 약해요.',
+              'Handing control to someone you trust feels calming and thrilling at once. Orders and praise melt you.'] },
+        { k: 'switch', e: '🔄', n: ['스위치', 'Switch'], c: '#9b8ec4',
+          d: ['그날의 기분에 따라 리드할 수도, 맡길 수도 있는 유연한 타입. 양쪽의 재미를 다 아는 욕심쟁이예요.',
+              'You can lead or follow depending on the day. You know the fun of both sides — greedy, in the best way.'] },
+        { k: 'brat', e: '😜', n: ['브랫', 'Brat'], c: '#ef9f6a',
+          d: ['일부러 말을 안 듣고 약을 올려 상대의 반응을 끌어내는 도발형. 벌 받는 순간까지가 놀이예요.',
+              'You disobey on purpose, teasing to provoke a reaction. Even the punishment is part of the game.'] },
+        { k: 'tamer', e: '🧤', n: ['브랫 테이머', 'Brat Tamer'], c: '#c9a36a',
+          d: ['도발하는 상대를 붙잡아 길들이는 데서 재미를 느끼는 타입. 밀당의 끝을 확실히 매듭짓는 사람이에요.',
+              'Catching and taming a bratty partner is your sport. You always finish the push-and-pull on your terms.'] },
+        { k: 'sadist', e: '🌶️', n: ['새디스트', 'Sadist'], c: '#d96a6a',
+          d: ['합의 아래 상대에게 통증과 자극을 주고 그 반응을 지켜보는 것에서 흥분을 느끼는 타입. 스팽킹과 깨물기가 무기예요.',
+              'With consent, you thrill in giving pain and intense sensation — spanking, biting — and watching the reaction.'] },
+        { k: 'maso', e: '🍑', n: ['마조히스트', 'Masochist'], c: '#e08f70',
+          d: ['적당한 통증이 쾌감으로 바뀌는 타입. 스팽킹이나 깨물기 같은 자극이 감각을 더 선명하게 만들어요.',
+              'For you, the right kind of pain turns into pleasure. A spank or a bite makes every sensation sharper.'] },
+        { k: 'rigger', e: '🪢', n: ['리거', 'Rigger'], c: '#8fae70',
+          d: ['상대를 묶고 고정해 마음대로 할 수 있는 상태로 만드는 것에 끌리는 타입. 로프, 수갑, 눈가리개가 도구예요.',
+              'You’re drawn to tying your partner up — rope, cuffs, blindfolds — putting them exactly where you want them.'] },
+        { k: 'bunny', e: '🐇', n: ['로프 버니', 'Rope Bunny'], c: '#b48ec4',
+          d: ['묶여서 움직일 수 없는 무력한 상태가 오히려 자유롭고 흥분되는 타입이에요.',
+              'Being tied and helpless feels strangely freeing — and very exciting.'] },
+        { k: 'voyeur', e: '👁️', n: ['관음형', 'Voyeur'], c: '#70a3ae',
+          d: ['지켜보는 것만으로 충분히 뜨거워지는 타입. 상대가 즐기는 모습이 최고의 자극이에요.',
+              'Watching alone is enough to set you off. Your partner enjoying themselves is the best show there is.'] },
+        { k: 'exhib', e: '✨', n: ['노출형', 'Exhibitionist'], c: '#d9a03f',
+          d: ['보여지는 것에서 흥분을 느끼는 타입. 시선이 닿는 순간 스위치가 켜져요.',
+              'Being seen turns you on. The moment eyes land on you, the switch flips.'] },
+        { k: 'expl', e: '🧪', n: ['실험가', 'Experimentalist'], c: '#6aa9d9',
+          d: ['새로운 도구, 역할극, 처음 해보는 것에 늘 호기심이 열려 있는 타입. "한번 해볼까?"가 입버릇이에요.',
+              'New toys, roleplay, anything untried — your curiosity never closes. “Wanna try it?” is your catchphrase.'] },
+        { k: 'vanilla', e: '🍦', n: ['바닐라', 'Vanilla'], c: '#c4b49b',
+          d: ['특별한 도구 없이도 다정한 스킨십과 교감만으로 충분히 만족하는 타입. 익숙함의 달콤함을 알아요.',
+              'Loving touch and connection satisfy you fully, no props required. You know how sweet the familiar can be.'] },
+      ];
+      const AK = Object.fromEntries(ARCH.map(a => [a.k, a]));
+
+      /* ═══ questions — [ko, en, weights] ═══ */
+      const Q = [
+        ['침대에서 주도권을 잡고 상대를 이끌 때 가장 흥분된다.', 'Taking charge in bed and leading my partner excites me most.', { dom: 3 }],
+        ['상대가 이끄는 대로 몸을 맡길 때 편안하고 흥분된다.', 'Letting my partner take full control feels both comfortable and exciting.', { sub: 3 }],
+        ['"이렇게 해", "움직이지 마" 같은 명령을 하는 쪽이 좋다.', 'I like being the one giving orders — “do this”, “don’t move”.', { dom: 2 }],
+        ['"잘했어", "착하지" 같은 칭찬을 들으면 무너진다.', 'Praise like “good girl / good boy” completely melts me.', { sub: 2 }],
+        ['그날 기분에 따라 리드하고 싶기도, 맡기고 싶기도 하다.', 'Depending on my mood, I want to lead some days and surrender on others.', { switch: 3 }],
+        ['일부러 말을 안 듣고 도발해서 상대의 반응을 끌어내고 싶다.', 'I like disobeying on purpose, teasing just to provoke a reaction.', { brat: 3 }],
+        ['말 안 듣고 까부는 상대를 붙잡아 길들이는 상황이 재미있을 것 같다.', 'Pinning down and taming a bratty partner sounds like great fun.', { tamer: 3 }],
+        ['스팽킹이나 깨물기처럼 상대를 가볍게 아프게 하는 것에 흥분한다.', 'Giving my partner a little pain — spanking, biting — excites me.', { sadist: 3 }],
+        ['스팽킹이나 깨물기 같은 적당한 통증이 쾌감으로 느껴진다.', 'The right amount of pain — a spank, a bite — feels like pleasure.', { maso: 3 }],
+        ['상대를 로프나 수갑으로 묶어보고 싶다.', 'I want to tie my partner up with rope or cuffs.', { rigger: 3 }],
+        ['묶여서 꼼짝 못 하는 상태를 상상하면 흥분된다.', 'Imagining being tied up and unable to move excites me.', { bunny: 3 }],
+        ['상대가 스스로 즐기는 모습을 가만히 지켜보고 싶다.', 'I’d love to just sit back and watch my partner pleasure themselves.', { voyeur: 3 }],
+        ['상대의 시선을 받으며 보여주는 상상을 하면 두근거린다.', 'Putting on a show while my partner watches makes my heart race.', { exhib: 3 }],
+        ['새로운 도구, 체위, 상황을 계속 시도해보고 싶다.', 'I always want to try new toys, positions, and scenarios.', { expl: 3 }],
+        ['도구나 역할 없이 다정한 살결의 맞닿음만으로 충분히 만족한다.', 'Tender skin-on-skin closeness satisfies me fully — no props needed.', { vanilla: 3 }],
+        ['눈가리개로 상대의 시야를 빼앗거나, 내 시야를 빼앗기고 싶다.', 'Blindfolds appeal to me — taking sight away, or having mine taken.', { rigger: 1, bunny: 1, expl: 1 }],
+        ['둘만의 규칙을 정해두고, 어기면 벌을 주는 쪽이 어울린다.', 'Setting rules for us — and punishing broken ones — suits me.', { dom: 1, tamer: 1, sadist: 1 }],
+        ['규칙을 어기고 벌 받는 상황을 상상하면 두근거린다.', 'Imagining breaking a rule and taking my punishment thrills me.', { sub: 1, brat: 1, maso: 1 }],
+        ['플레이 중 상대의 머리를 쓰다듬으며 "착하지"라고 말해주고 싶다.', 'Mid-play, I want to stroke my partner’s hair and tell them they’re good.', { dom: 2, tamer: 1 }],
+        ['아무 생각 없이 완전히 맡겨버리고 싶은 날이 있다.', 'Some days I just want to switch my brain off and be completely taken.', { sub: 2 }],
+        ['선생님/학생, 주인/메이드 같은 역할극을 해보고 싶다.', 'I’d like to try roleplay — teacher/student, master/maid.', { expl: 2, switch: 1 }],
+        ['상대를 감질나게 애태우다가 결국 애원하게 만들고 싶다.', 'I want to tease my partner to the edge until they beg.', { dom: 2, sadist: 1 }],
+        ['애원해야 하는 상황이 부끄럽지만 흥분된다.', 'Having to beg embarrasses me — and turns me on.', { sub: 2, maso: 1 }],
+        ['머리카락을 잡아당기거나 목덜미를 쥐는 쪽에 끌린다.', 'I’m drawn to pulling hair or gripping the back of a neck.', { sadist: 2, dom: 1 }],
+        ['머리카락을 잡히거나 목덜미를 쥐이는 쪽에 끌린다.', 'Having my hair pulled or my neck gripped draws me in.', { maso: 2, sub: 1 }],
+        ['거울이나 카메라 앞에서 하는 상상을 해본 적이 있다.', 'I’ve fantasized about doing it in front of a mirror or a camera.', { exhib: 2, voyeur: 1 }],
+        ['쫓고 붙잡고 가볍게 제압하는 몸싸움 같은 플레이에 끌린다.', 'Chase-and-pin play — hunting or being hunted — appeals to me.', { dom: 1, brat: 1, expl: 1 }],
+        ['세이프워드를 정해두면 훨씬 과감하게 시도해볼 수 있을 것 같다.', 'With a safeword agreed, I could get much bolder.', { expl: 2, switch: 1 }],
+        ['손목을 머리 위로 고정하거나 고정당하는 순간이 좋다.', 'That moment of wrists pinned overhead — giving or getting — is delicious.', { rigger: 1, bunny: 1, switch: 1 }],
+        ['격한 플레이 후 꼭 안아주고 도닥이는 애프터케어가 꼭 필요하다.', 'After intense play, holding each other close — real aftercare — is a must.', { vanilla: 2, sub: 1 }],
+      ];
+
+      /* ═══ state ═══ */
+      let who = null;
+      let idx = 0;
+      const answers = new Array(Q.length).fill(null);
+      let myEntry = null;
+
+      /* ═══ views ═══ */
+      const VIEWS = ['v-intro', 'v-test', 'v-result'];
+      function show(v) { VIEWS.forEach(x => $(x).classList.toggle('on', x === v)); window.scrollTo(0, 0); }
+
+      /* ═══ shared store ═══ */
+      async function histApi(kind, payload) {
+        if (!LLM_ENDPOINT) return null;
+        try {
+          const r = await fetch(LLM_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ kind, payload: { space: SPACE, ...payload } }),
+          });
+          if (!r.ok) return null;
+          return await r.json();
+        } catch { return null; }
+      }
+
+      /* ═══ rendering ═══ */
+      function renderIntro() {
+        $('inTitle').textContent = t(STR.inTitle);
+        $('inSub').innerHTML = t(STR.inSub);
+        $('startBtn').textContent = t(STR.start);
+        $('inDisc').textContent = t(STR.disc);
+        $('langBtn').textContent = lang === 'ko' ? 'EN' : '한';
+        document.documentElement.lang = lang;
+      }
+
+      function renderQuestion() {
+        const q = Q[idx];
+        $('progFill').style.width = ((idx) / Q.length * 100) + '%';
+        $('progNum').textContent = (idx + 1) + ' / ' + Q.length;
+        $('qText').textContent = (idx + 1) + '. ' + (lang === 'ko' ? q[0] : q[1]);
+        $('qBack').textContent = t(STR.back);
+        $('qBack').style.visibility = idx > 0 ? 'visible' : 'hidden';
+        const col = $('ansCol');
+        col.innerHTML = '';
+        STR.ans.forEach((label, v) => {
+          const b = document.createElement('button');
+          b.className = 'ans-btn' + (answers[idx] === v ? ' sel' : '');
+          b.textContent = t(label);
+          b.addEventListener('click', () => {
+            answers[idx] = v;
+            b.classList.add('sel');
+            setTimeout(() => {
+              if (idx < Q.length - 1) { idx++; renderQuestion(); }
+              else finish();
+            }, 160);
+          });
+          col.appendChild(b);
+        });
+      }
+
+      function computeScores(ans) {
+        const num = {}, den = {};
+        ARCH.forEach(a => { num[a.k] = 0; den[a.k] = 0; });
+        Q.forEach((q, i) => {
+          const v = ans[i];
+          if (v === null || v === undefined) return;
+          Object.entries(q[2]).forEach(([k, w]) => {
+            num[k] += v * w;
+            den[k] += 4 * w;
+          });
+        });
+        const scores = {};
+        ARCH.forEach(a => { scores[a.k] = den[a.k] ? Math.round(num[a.k] / den[a.k] * 100) : 0; });
+        return scores;
+      }
+
+      async function finish() {
+        const scores = computeScores(answers);
+        myEntry = { type: 'bdsm', ts: Date.now(), who, scores };
+        renderResult(myEntry);
+        show('v-result');
+        // save to the shared store, then look up the partner's latest result
+        $('syncNote').textContent = t(STR.saving);
+        $('syncNote').style.display = 'block';
+        await histApi('hist_put', { entry: myEntry });
+        await renderCompare();
+        $('syncNote').style.display = 'none';
+      }
+
+      function barRow(a, pct) {
+        return '<div class="rbar-row">'
+          + '<span class="rn">' + a.e + ' ' + t(a.n) + '</span>'
+          + '<span class="rt"><span class="rf" data-w="' + pct + '" style="background:' + a.c + '"></span></span>'
+          + '<span class="rp">' + pct + '%</span></div>';
+      }
+
+      function renderResult(entry) {
+        const sorted = ARCH.map(a => ({ a, p: entry.scores[a.k] || 0 })).sort((x, y) => y.p - x.p);
+        $('rTitle').textContent = t(STR.rTitle).replace('{w}', entry.who);
+        $('rSub').textContent = t(STR.rSub);
+        $('rAllTitle').textContent = t(STR.rAll);
+        $('rDisc').textContent = t(STR.disc);
+        $('againBtn').textContent = t(STR.again);
+        $('homeBtn').textContent = t(STR.home);
+        $('rTop3').innerHTML = sorted.slice(0, 3).map((x, i) =>
+          '<div class="arch-card' + (i === 0 ? ' rank1' : '') + '">'
+          + '<span class="ae">' + x.a.e + '</span>'
+          + '<span style="flex:1"><div class="an">' + t(x.a.n) + '</div><div class="ad">' + t(x.a.d) + '</div></span>'
+          + '<span class="ap" style="color:' + x.a.c + '">' + x.p + '%</span></div>'
+        ).join('');
+        $('rBars').innerHTML = sorted.map(x => barRow(x.a, x.p)).join('');
+        requestAnimationFrame(() => {
+          document.querySelectorAll('#rBars .rf').forEach(f => { f.style.width = f.dataset.w + '%'; });
+        });
+      }
+
+      async function renderCompare() {
+        if (!myEntry) return;
+        const other = myEntry.who === 'HyeonWoo' ? 'Jam' : 'HyeonWoo';
+        $('cmpCard').style.display = 'block';
+        $('cmpTitle').textContent = t(STR.cmpTitle);
+        const body = await histApi('hist_list', {});
+        const theirs = body && Array.isArray(body.items)
+          ? body.items.find(e => e.type === 'bdsm' && e.who === other) : null;
+        if (!theirs) {
+          $('cmpSub').textContent = '';
+          $('cmpBody').innerHTML = '<div class="cmp-note">' + t(STR.cmpNone).replace('{b}', other) + '</div>';
+          return;
+        }
+        $('cmpSub').textContent = t(STR.cmpSub).replace('{a}', myEntry.who).replace('{b}', theirs.who);
+        const sorted = ARCH.map(a => ({
+          a,
+          me: myEntry.scores[a.k] || 0,
+          you: theirs.scores[a.k] || 0,
+        })).sort((x, y) => Math.max(y.me, y.you) - Math.max(x.me, x.you));
+        let html = '<div class="cmp-head"><span style="color:#e0708f">■ ' + myEntry.who + '</span>'
+          + '<span style="color:#6a93c4">■ ' + theirs.who + '</span></div>';
+        html += sorted.map(x =>
+          '<div class="cmp-row"><div class="cn">' + x.a.e + ' ' + t(x.a.n) + ' · ' + x.me + '% / ' + x.you + '%</div>'
+          + '<div class="cmp-bars">'
+          + '<span class="ct"><span class="cf me" style="width:' + x.me + '%"></span></span>'
+          + '<span class="ct"><span class="cf you" style="width:' + x.you + '%"></span></span>'
+          + '</div></div>'
+        ).join('');
+        // both high (>=60) → talking points; complementary pairs → matches
+        const both = sorted.filter(x => x.me >= 60 && x.you >= 60).map(x => x.a.e + t(x.a.n));
+        const PAIRS = [['dom', 'sub'], ['sadist', 'maso'], ['rigger', 'bunny'], ['brat', 'tamer'], ['exhib', 'voyeur']];
+        const fits = [];
+        PAIRS.forEach(([p, q]) => {
+          const A = AK[p], B = AK[q];
+          if ((myEntry.scores[p] >= 60 && theirs.scores[q] >= 60)) fits.push(A.e + t(A.n) + ' ↔ ' + B.e + t(B.n));
+          else if ((myEntry.scores[q] >= 60 && theirs.scores[p] >= 60)) fits.push(B.e + t(B.n) + ' ↔ ' + A.e + t(A.n));
+        });
+        if (both.length) html += '<div class="cmp-note">' + t(STR.cmpHot).replace('{list}', both.join(', ')) + '</div>';
+        if (fits.length) html += '<div class="cmp-note">' + t(STR.cmpFit).replace('{list}', fits.join(' · ')) + '</div>';
+        $('cmpBody').innerHTML = html;
+      }
+
+      /* ═══ events ═══ */
+      document.querySelectorAll('.who-chip').forEach(b => {
+        b.addEventListener('click', () => {
+          document.querySelectorAll('.who-chip').forEach(x => x.classList.remove('sel'));
+          b.classList.add('sel');
+          who = b.dataset.who;
+          $('startBtn').disabled = false;
+        });
+      });
+
+      $('startBtn').addEventListener('click', () => {
+        idx = 0;
+        answers.fill(null);
+        renderQuestion();
+        show('v-test');
+      });
+
+      $('qBack').addEventListener('click', () => {
+        if (idx > 0) { idx--; renderQuestion(); }
+      });
+
+      $('againBtn').addEventListener('click', () => {
+        idx = 0;
+        answers.fill(null);
+        myEntry = null;
+        renderIntro();
+        show('v-intro');
+      });
+      $('homeBtn').addEventListener('click', () => { location.href = './index.html'; });
+
+      $('langBtn').addEventListener('click', () => {
+        lang = lang === 'ko' ? 'en' : 'ko';
+        localStorage.setItem(LKEY, lang);
+        renderIntro();
+        if ($('v-test').classList.contains('on')) renderQuestion();
+        if ($('v-result').classList.contains('on') && myEntry) { renderResult(myEntry); renderCompare(); }
+      });
+
+      /* init */
+      renderIntro();
+    })();
+  </script>
+</body>
+</html>
