@@ -158,6 +158,15 @@
     .cmp-box .cd { font-size: 12px; color: #7a8290; margin-top: 2px; line-height: 1.6; }
     .cmp-note { font-size: 12.5px; color: #7a8290; margin-top: 10px; line-height: 1.65; }
 
+    /* per-question answer comparison */
+    .qa-toggle { width: 100%; margin-top: 12px; font-size: 13px; padding: 11px; }
+    .qa-row { padding: 9px 11px; border-radius: 10px; margin-top: 6px; background: #f1f4f7; }
+    .qa-row.diff { background: #e3eef8; }
+    .qa-q { font-size: 12.5px; font-weight: 700; line-height: 1.5; }
+    .qa-a { display: flex; justify-content: space-between; gap: 10px; margin-top: 4px; font-size: 12px; font-weight: 700; }
+    .qa-me { color: #5a7ba6; }
+    .qa-you { color: #7a9a5b; text-align: right; }
+
     .disclaimer { font-size: 11.5px; color: #8a94a0; text-align: center; line-height: 1.7; margin: 6px 0 12px; }
     .sync-note { font-size: 12px; color: #9aa4ae; font-weight: 600; text-align: center; margin: 4px 0 10px; animation: pulse 1.6s ease-in-out infinite; }
     @keyframes pulse { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
@@ -261,6 +270,10 @@
         home: ['메인으로', 'Home'],
         saving: ['결과를 공유 저장소에 남기는 중…', 'Saving to your shared space…'],
         checking: ['저장된 결과 확인 중…', 'Checking for a saved result…'],
+        ansCmp: ['📋 질문별 답변 비교 보기', '📋 Compare answers question by question'],
+        ansCmpHide: ['질문별 답변 비교 접기', 'Hide answer comparison'],
+        ansNoTheirs: ['상대의 이 결과에는 문항별 답변이 저장되어 있지 않아요. 상대가 다시 테스트하면 볼 수 있어요.',
+                      'This result doesn’t include their per-question answers. They’ll be stored on their next take.'],
         ans: [
           ['전혀 아니다', 'Strongly disagree'],
           ['아니다', 'Disagree'],
@@ -357,6 +370,8 @@
       let idx = 0;
       const answers = new Array(Q.length).fill(null);
       let myEntry = null;
+      let theirEntry = null;
+      let ansCmpOpen = false;
 
       const VIEWS = ['v-intro', 'v-test', 'v-result'];
       function show(v) { VIEWS.forEach(x => $(x).classList.toggle('on', x === v)); window.scrollTo(0, 0); }
@@ -491,6 +506,7 @@
         const body = await histApi('hist_list', {});
         const theirs = body && Array.isArray(body.items)
           ? body.items.find(e => e.type === 'phbti' && e.who === other) : null;
+        theirEntry = theirs || null;
         if (!theirs) {
           $('cmpBody').innerHTML = '<div class="cmp-note">' + t(STR.cmpNone).replace('{b}', other) + '</div>';
           return;
@@ -504,7 +520,41 @@
           ? t(STR.cmpSame)
           : t(STR.cmpDiff).replace('{a}', t(PH[myEntry.letters].n)).replace('{ta}', myEntry.letters)
               .replace('{b}', t(ph.n)).replace('{tb}', theirs.letters)) + '</div>';
+        html += '<button class="ghost qa-toggle" id="ansCmpBtn"></button><div id="ansCmpList" style="display:none"></div>';
         $('cmpBody').innerHTML = html;
+        initAnswerCompare();
+      }
+
+      /* per-question answer comparison (both entries store raw answers) */
+      function buildAnswerCompare() {
+        const mine = (myEntry && Array.isArray(myEntry.answers) && myEntry.answers.length === Q.length) ? myEntry.answers : null;
+        const yours = (theirEntry && Array.isArray(theirEntry.answers) && theirEntry.answers.length === Q.length) ? theirEntry.answers : null;
+        if (!yours) return '<div class="cmp-note">' + t(STR.ansNoTheirs) + '</div>';
+        const label = (v) => (v === null || v === undefined) ? '—' : t(STR.ans[v]);
+        return Q.map((q, i) => {
+          const m = mine ? mine[i] : null;
+          const y = yours[i];
+          const diff = mine && m !== y;
+          return '<div class="qa-row' + (diff ? ' diff' : '') + '">'
+            + '<div class="qa-q">' + (i + 1) + '. ' + (lang === 'ko' ? q[0] : q[1]) + '</div>'
+            + '<div class="qa-a"><span class="qa-me">' + myEntry.who + ': ' + label(m) + '</span>'
+            + '<span class="qa-you">' + theirEntry.who + ': ' + label(y) + '</span></div>'
+            + '</div>';
+        }).join('');
+      }
+
+      function initAnswerCompare() {
+        const btn = $('ansCmpBtn');
+        const list = $('ansCmpList');
+        if (!btn) return;
+        btn.textContent = t(ansCmpOpen ? STR.ansCmpHide : STR.ansCmp);
+        if (ansCmpOpen) { list.innerHTML = buildAnswerCompare(); list.style.display = 'block'; }
+        btn.addEventListener('click', () => {
+          ansCmpOpen = !ansCmpOpen;
+          btn.textContent = t(ansCmpOpen ? STR.ansCmpHide : STR.ansCmp);
+          if (ansCmpOpen && !list.innerHTML) list.innerHTML = buildAnswerCompare();
+          list.style.display = ansCmpOpen ? 'block' : 'none';
+        });
       }
 
       /* ═══ open an existing result directly ═══ */
@@ -553,6 +603,8 @@
       $('startBtn').addEventListener('click', () => {
         idx = 0;
         answers.fill(null);
+        myEntry = null;      // a fresh start must never edit a loaded entry
+        ansCmpOpen = false;
         renderQuestion();
         show('v-test');
       });
