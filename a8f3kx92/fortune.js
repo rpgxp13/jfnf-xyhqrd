@@ -14,7 +14,8 @@
 
   /* ═══════════ i18n ═══════════ */
   const LKEY = 'fortune_lang';
-  let lang = localStorage.getItem(LKEY) === 'en' ? 'en' : 'ko';
+  // default language is ENGLISH; Korean only when explicitly chosen
+  let lang = localStorage.getItem(LKEY) === 'ko' ? 'ko' : 'en';
 
   const STR = {
     'title.fortune': ['🔮 Fortune', '🔮 Fortune'],

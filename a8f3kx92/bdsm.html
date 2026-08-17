@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -267,7 +267,8 @@
 
       /* ═══ i18n (shares the language key with the fortune page) ═══ */
       const LKEY = 'fortune_lang';
-      let lang = localStorage.getItem(LKEY) === 'en' ? 'en' : 'ko';
+      // default language is ENGLISH; Korean only when explicitly chosen
+      let lang = localStorage.getItem(LKEY) === 'ko' ? 'ko' : 'en';
       const t = (pair) => pair[lang === 'ko' ? 0 : 1];
 
       const STR = {
