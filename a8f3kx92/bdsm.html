@@ -185,6 +185,19 @@
     .cmp-bars .cf.you { background: linear-gradient(90deg, #8fb4d9, #6a93c4); }
     .cmp-note { font-size: 12px; color: #a08a75; margin-top: 10px; line-height: 1.6; }
 
+    .cmp-select {
+      width: 100%;
+      margin-bottom: 12px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      color: #6b4a3a;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 2px solid rgba(120, 60, 70, 0.15);
+      background: #fff;
+    }
+
     /* per-question answer comparison */
     .qa-toggle { width: 100%; margin-top: 12px; font-size: 13px; padding: 11px; }
     .qa-row { padding: 9px 11px; border-radius: 10px; margin-top: 6px; background: #faf4ec; }
@@ -294,7 +307,8 @@
         rAll: ['전체 성향 분포', 'Full breakdown'],
         rAllSub: ['각 성향을 누르면 어떤 성향인지 설명이 나와요', 'Tap any leaning to read what it means'],
         cmpTitle: ['둘이 비교하기 💞', 'Side by Side 💞'],
-        cmpSub: ['{a} vs {b} — 최근 결과 기준', '{a} vs {b} — latest results'],
+        cmpSub: ['{a} vs {b}', '{a} vs {b}'],
+        cmpPick: ['🔁 비교할 결과 고르기 — 지난 결과와도 비교할 수 있어요', '🔁 Pick a result to compare — past results work too'],
         cmpNone: ['{b}의 결과가 아직 없어요. 먼저 하고 자랑해 보세요 😏', 'No results from {b} yet. Finish first and brag 😏'],
         cmpHot: ['둘 다 높은 성향: {list} — 오늘 밤 대화 주제로 어떨까요?', 'You both scored high on: {list} — tonight’s conversation topic?'],
         cmpFit: ['찰떡 조합: {list}', 'Perfect matches: {list}'],
@@ -584,28 +598,63 @@
         });
       }
 
+      let cmpEntries = [];
       async function renderCompare() {
         if (!myEntry) return;
-        const other = myEntry.who === 'HyeonWoo' ? 'Jam' : 'HyeonWoo';
         $('cmpCard').style.display = 'block';
         $('cmpTitle').textContent = t(STR.cmpTitle);
         const body = await histApi('hist_list', {});
-        const theirs = body && Array.isArray(body.items)
-          ? body.items.find(e => e.type === 'bdsm' && e.who === other) : null;
+        cmpEntries = (body && Array.isArray(body.items) ? body.items : [])
+          .filter(e => e.type === 'bdsm' && !(e.ts === myEntry.ts && e.who === myEntry.who));
+        const other = myEntry.who === 'HyeonWoo' ? 'Jam' : 'HyeonWoo';
+        renderCompareBody(cmpEntries.find(e => e.who === other) || cmpEntries[0] || null);
+      }
+
+      function fmtTs(ts) {
+        const d = new Date(ts);
+        const p = (n) => String(n).padStart(2, '0');
+        return String(d.getFullYear()).slice(2) + '.' + p(d.getMonth() + 1) + '.' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+      }
+      /* disambiguate self-comparisons with the entry's date */
+      const cmpName = (e) => e.who === myEntry.who ? e.who + ' (' + fmtTs(e.ts) + ')' : e.who;
+
+      function cmpPickerHtml(theirs) {
+        if (cmpEntries.length < 2) return '';
+        return '<div class="cmp-note" style="margin:0 0 6px">' + t(STR.cmpPick) + '</div>'
+          + '<select class="cmp-select" id="cmpSelect">'
+          + cmpEntries.map(e => '<option value="' + e.ts + '"' + (theirs && e.ts === theirs.ts ? ' selected' : '')
+            + '>' + e.who + ' · ' + fmtTs(e.ts) + '</option>').join('')
+          + '</select>';
+      }
+      function bindCmpSelect() {
+        const sel = $('cmpSelect');
+        if (!sel) return;
+        sel.addEventListener('change', () => {
+          renderCompareBody(cmpEntries.find(x => String(x.ts) === sel.value) || null);
+        });
+      }
+
+      /* build the comparison against ONE selected entry — the partner's
+         latest by default, but any past result (theirs, or your own
+         earlier one for change tracking) can be picked from the dropdown */
+      function renderCompareBody(theirs) {
         theirEntry = theirs || null;
+        const other = myEntry.who === 'HyeonWoo' ? 'Jam' : 'HyeonWoo';
+        const picker = cmpPickerHtml(theirs);
         if (!theirs) {
           $('cmpSub').textContent = '';
-          $('cmpBody').innerHTML = '<div class="cmp-note">' + t(STR.cmpNone).replace('{b}', other) + '</div>';
+          $('cmpBody').innerHTML = picker + '<div class="cmp-note">' + t(STR.cmpNone).replace('{b}', other) + '</div>';
+          bindCmpSelect();
           return;
         }
-        $('cmpSub').textContent = t(STR.cmpSub).replace('{a}', myEntry.who).replace('{b}', theirs.who);
+        $('cmpSub').textContent = t(STR.cmpSub).replace('{a}', myEntry.who).replace('{b}', cmpName(theirs)) + ' · ' + fmtTs(theirs.ts);
         const sorted = ARCH.map(a => ({
           a,
           me: myEntry.scores[a.k] || 0,
           you: theirs.scores[a.k] || 0,
         })).sort((x, y) => Math.max(y.me, y.you) - Math.max(x.me, x.you));
         let html = '<div class="cmp-head"><span style="color:#e0708f">■ ' + myEntry.who + '</span>'
-          + '<span style="color:#6a93c4">■ ' + theirs.who + '</span></div>';
+          + '<span style="color:#6a93c4">■ ' + cmpName(theirs) + '</span></div>';
         html += sorted.map(x =>
           '<div class="cmp-row"><div class="cn">' + x.a.e + ' ' + t(x.a.n) + ' · ' + x.me + '% / ' + x.you + '%</div>'
           + '<div class="cmp-bars">'
@@ -626,7 +675,8 @@
         if (both.length) html += '<div class="cmp-note">' + t(STR.cmpHot).replace('{list}', both.join(', ')) + '</div>';
         if (fits.length) html += '<div class="cmp-note">' + t(STR.cmpFit).replace('{list}', fits.join(' · ')) + '</div>';
         html += '<button class="ghost qa-toggle" id="ansCmpBtn"></button><div id="ansCmpList" style="display:none"></div>';
-        $('cmpBody').innerHTML = html;
+        $('cmpBody').innerHTML = picker + html;
+        bindCmpSelect();
         initAnswerCompare();
       }
 
@@ -643,7 +693,7 @@
           return '<div class="qa-row' + (diff ? ' diff' : '') + '">'
             + '<div class="qa-q">' + (i + 1) + '. ' + (lang === 'ko' ? q[0] : q[1]) + '</div>'
             + '<div class="qa-a"><span class="qa-me">' + myEntry.who + ': ' + label(m) + '</span>'
-            + '<span class="qa-you">' + theirEntry.who + ': ' + label(y) + '</span></div>'
+            + '<span class="qa-you">' + cmpName(theirEntry) + ': ' + label(y) + '</span></div>'
             + '</div>';
         }).join('');
       }

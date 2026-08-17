@@ -158,6 +158,19 @@
     .cmp-box .cd { font-size: 12px; color: #7a8290; margin-top: 2px; line-height: 1.6; }
     .cmp-note { font-size: 12.5px; color: #7a8290; margin-top: 10px; line-height: 1.65; }
 
+    .cmp-select {
+      width: 100%;
+      margin-bottom: 12px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      color: #4a5568;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 2px solid rgba(70, 80, 90, 0.15);
+      background: #fff;
+    }
+
     /* per-question answer comparison */
     .qa-toggle { width: 100%; margin-top: 12px; font-size: 13px; padding: 11px; }
     .qa-row { padding: 9px 11px; border-radius: 10px; margin-top: 6px; background: #f1f4f7; }
@@ -262,6 +275,7 @@
         rWho: ['{w}와 닮은 철학자는', 'The philosopher who thinks like {w}'],
         axTitle: ['성향 축 분석', 'Your four axes'],
         cmpTitle: ['상대의 철학자 💞', 'Your partner’s philosopher 💞'],
+        cmpPick: ['🔁 비교할 결과 고르기 — 지난 결과와도 비교할 수 있어요', '🔁 Pick a result to compare — past results work too'],
         cmpNone: ['{b}의 결과가 아직 없어요. 어떤 철학자일지 궁금하지 않아요? 😏', 'No result from {b} yet. Aren’t you curious which philosopher they’d be? 😏'],
         cmpSame: ['둘이 같은 철학자예요! 영혼의 학파 동기네요 🎓', 'Same philosopher! Soulmates of the same school 🎓'],
         cmpDiff: ['{a}({ta}) × {b}({tb}) — 서로 다른 학파의 만남이에요. 오늘 저녁 토론 주제로 어떨까요?', '{a} ({ta}) × {b} ({tb}) — two schools meet. Tonight’s dinner debate, perhaps?'],
@@ -498,30 +512,66 @@
         });
       }
 
+      let cmpEntries = [];
       async function renderCompare() {
         if (!myEntry) return;
-        const other = myEntry.who === 'HyeonWoo' ? 'Jam' : 'HyeonWoo';
         $('cmpCard').style.display = 'block';
         $('cmpTitle').textContent = t(STR.cmpTitle);
         const body = await histApi('hist_list', {});
-        const theirs = body && Array.isArray(body.items)
-          ? body.items.find(e => e.type === 'phbti' && e.who === other) : null;
+        cmpEntries = (body && Array.isArray(body.items) ? body.items : [])
+          .filter(e => e.type === 'phbti' && !(e.ts === myEntry.ts && e.who === myEntry.who));
+        const other = myEntry.who === 'HyeonWoo' ? 'Jam' : 'HyeonWoo';
+        renderCompareBody(cmpEntries.find(e => e.who === other) || cmpEntries[0] || null);
+      }
+
+      function fmtTs(ts) {
+        const d = new Date(ts);
+        const p = (n) => String(n).padStart(2, '0');
+        return String(d.getFullYear()).slice(2) + '.' + p(d.getMonth() + 1) + '.' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+      }
+      /* disambiguate self-comparisons with the entry's date */
+      const cmpName = (e) => e.who === myEntry.who ? e.who + ' (' + fmtTs(e.ts) + ')' : e.who;
+
+      function cmpPickerHtml(theirs) {
+        if (cmpEntries.length < 2) return '';
+        return '<div class="cmp-note" style="margin:0 0 6px">' + t(STR.cmpPick) + '</div>'
+          + '<select class="cmp-select" id="cmpSelect">'
+          + cmpEntries.map(e => '<option value="' + e.ts + '"' + (theirs && e.ts === theirs.ts ? ' selected' : '')
+            + '>' + e.who + ' · ' + fmtTs(e.ts) + '</option>').join('')
+          + '</select>';
+      }
+      function bindCmpSelect() {
+        const sel = $('cmpSelect');
+        if (!sel) return;
+        sel.addEventListener('change', () => {
+          renderCompareBody(cmpEntries.find(x => String(x.ts) === sel.value) || null);
+        });
+      }
+
+      /* build the comparison against ONE selected entry — the partner's
+         latest by default, but any past result (theirs, or your own
+         earlier one for change tracking) can be picked from the dropdown */
+      function renderCompareBody(theirs) {
         theirEntry = theirs || null;
+        const other = myEntry.who === 'HyeonWoo' ? 'Jam' : 'HyeonWoo';
+        const picker = cmpPickerHtml(theirs);
         if (!theirs) {
-          $('cmpBody').innerHTML = '<div class="cmp-note">' + t(STR.cmpNone).replace('{b}', other) + '</div>';
+          $('cmpBody').innerHTML = picker + '<div class="cmp-note">' + t(STR.cmpNone).replace('{b}', other) + '</div>';
+          bindCmpSelect();
           return;
         }
         const ph = PH[theirs.letters];
         let html = '<div class="cmp-box">'
           + '<span class="ce">' + ph.e + '</span>'
-          + '<span><div class="cn">' + other + ' — ' + t(ph.n) + ' (' + theirs.letters + ')</div>'
+          + '<span><div class="cn">' + cmpName(theirs) + ' — ' + t(ph.n) + ' (' + theirs.letters + ')</div>'
           + '<div class="cd">' + t(ph.d) + '</div></span></div>';
         html += '<div class="cmp-note">' + (theirs.letters === myEntry.letters
           ? t(STR.cmpSame)
           : t(STR.cmpDiff).replace('{a}', t(PH[myEntry.letters].n)).replace('{ta}', myEntry.letters)
               .replace('{b}', t(ph.n)).replace('{tb}', theirs.letters)) + '</div>';
         html += '<button class="ghost qa-toggle" id="ansCmpBtn"></button><div id="ansCmpList" style="display:none"></div>';
-        $('cmpBody').innerHTML = html;
+        $('cmpBody').innerHTML = picker + html;
+        bindCmpSelect();
         initAnswerCompare();
       }
 
@@ -538,7 +588,7 @@
           return '<div class="qa-row' + (diff ? ' diff' : '') + '">'
             + '<div class="qa-q">' + (i + 1) + '. ' + (lang === 'ko' ? q[0] : q[1]) + '</div>'
             + '<div class="qa-a"><span class="qa-me">' + myEntry.who + ': ' + label(m) + '</span>'
-            + '<span class="qa-you">' + theirEntry.who + ': ' + label(y) + '</span></div>'
+            + '<span class="qa-you">' + cmpName(theirEntry) + ': ' + label(y) + '</span></div>'
             + '</div>';
         }).join('');
       }
