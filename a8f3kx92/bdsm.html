@@ -254,8 +254,8 @@
 
       const STR = {
         inTitle: ['우리만의 케미 테스트', 'Our Private Chemistry Test'],
-        inSub: ['30개의 질문에 솔직하게 답하면<br>침대 위 성향을 퍼센트로 알려드려요.<br>누가 답하는지 먼저 골라주세요 🤫',
-                'Answer 30 questions honestly and<br>see your bedroom leanings in percentages.<br>First, tell me who you are 🤫'],
+        inSub: ['60개의 질문에 솔직하게 답하면<br>침대 위 성향 19가지를 퍼센트로 알려드려요.<br>누가 답하는지 먼저 골라주세요 🤫',
+                'Answer 60 questions honestly and<br>see 19 bedroom leanings in percentages.<br>First, tell me who you are 🤫'],
         start: ['솔직하게 시작하기 🔥', 'Start honestly 🔥'],
         disc: ['재미와 대화를 위한 테스트예요. 모든 플레이는 언제나 서로의 합의, 그리고 세이프워드가 먼저입니다.',
                'This is for fun and conversation. Real play always starts with consent — and a safeword.'],
@@ -322,6 +322,24 @@
         { k: 'vanilla', e: '🍦', n: ['바닐라', 'Vanilla'], c: '#c4b49b',
           d: ['특별한 도구 없이도 다정한 스킨십과 교감만으로 충분히 만족하는 타입. 익숙함의 달콤함을 알아요.',
               'Loving touch and connection satisfy you fully, no props required. You know how sweet the familiar can be.'] },
+        { k: 'primal_h', e: '🐺', n: ['프라이멀 · 헌터', 'Primal (Hunter)'], c: '#a1785a',
+          d: ['본능으로 움직이는 사냥꾼 타입. 쫓고, 붙잡고, 으르렁거리는 원초적인 몸의 대화에서 불이 붙어요.',
+              'You run on instinct — chasing, catching, growling. Raw, primal body language sets you alight.'] },
+        { k: 'primal_p', e: '🦌', n: ['프라이멀 · 프레이', 'Primal (Prey)'], c: '#c4a284',
+          d: ['쫓기고 붙잡히는 쪽에서 짜릿함을 느끼는 타입. 도망칠 때의 심장 박동까지가 놀이의 일부예요.',
+              'The thrill of being chased and caught is yours. Even the racing heartbeat of the getaway is part of the game.'] },
+        { k: 'owner', e: '🐾', n: ['오너', 'Owner'], c: '#8a9a5b',
+          d: ['상대를 "내 것"으로 만들고 아껴 기르는 주인 타입. 목줄, 둘만의 규칙, 끝없는 쓰다듬에서 만족을 느껴요.',
+              'Marking someone as yours — a collar, house rules, endless petting — satisfies you deeply.'] },
+        { k: 'pet', e: '🐈', n: ['펫', 'Pet'], c: '#d9b26a',
+          d: ['누군가의 것이 되어 예쁨받는 데서 안정과 흥분을 동시에 느끼는 타입. 목걸이와 쓰다듬에 그르렁거려요.',
+              'Being someone’s — collared, adored, endlessly stroked — makes you purr.'] },
+        { k: 'degrader', e: '🗯️', n: ['디그레이더', 'Degrader'], c: '#b06a8a',
+          d: ['합의 아래, 짓궂고 수치스러운 말로 상대를 무너뜨리는 타입. 말이 가장 강한 도구라는 걸 알아요.',
+              'With consent, you take your partner apart with mean, filthy words. You know language is the sharpest toy.'] },
+        { k: 'degradee', e: '😳', n: ['디그레이디', 'Degradee'], c: '#c48a9b',
+          d: ['수치스러운 말에 얼굴이 붉어지면서도 더 깊이 흥분하는 타입. 부끄러움이 곧 스위치예요.',
+              'Humiliating words make you blush — and burn hotter. Shame is your switch.'] },
       ];
       const AK = Object.fromEntries(ARCH.map(a => [a.k, a]));
 
@@ -357,6 +375,36 @@
         ['세이프워드를 정해두면 훨씬 과감하게 시도해볼 수 있을 것 같다.', 'With a safeword agreed, I could get much bolder.', { expl: 2, switch: 1 }],
         ['손목을 머리 위로 고정하거나 고정당하는 순간이 좋다.', 'That moment of wrists pinned overhead — giving or getting — is delicious.', { rigger: 1, bunny: 1, switch: 1 }],
         ['격한 플레이 후 꼭 안아주고 도닥이는 애프터케어가 꼭 필요하다.', 'After intense play, holding each other close — real aftercare — is a must.', { vanilla: 2, sub: 1 }],
+        ['상대를 사냥감처럼 쫓아가 덮치는 상상을 하면 심장이 뛴다.', 'Imagining stalking my partner like prey and pouncing gets my heart racing.', { primal_h: 3 }],
+        ['도망치다 붙잡혀 꼼짝없이 당하는 상상을 하면 심장이 뛴다.', 'Imagining running, getting caught, and being overpowered gets my heart racing.', { primal_p: 3 }],
+        ['으르렁거리고 물고 할퀴는, 말보다 몸이 앞서는 야생적인 순간이 끌린다.', 'Growling, biting, scratching — moments where body beats words draw me in.', { primal_h: 1, primal_p: 1 }],
+        ['상대에게 목줄이나 목걸이를 채워 "내 것"이라는 표시를 하고 싶다.', 'I want to collar my partner — a visible mark that they’re mine.', { owner: 3 }],
+        ['목걸이(초커)를 채워지고 "누군가의 것"이 되는 상상이 좋다.', 'Wearing a collar, being someone’s — that fantasy pleases me.', { pet: 3 }],
+        ['상대를 무릎에 앉히고 쓰다듬으며 애완동물처럼 예뻐해주고 싶다.', 'I want to pet and spoil my partner in my lap like a beloved pet.', { owner: 2 }],
+        ['무릎에 앉아 쓰다듬어지고 애완동물처럼 예쁨받고 싶다.', 'Curling up in a lap, stroked and adored like a pet — yes please.', { pet: 2 }],
+        ['플레이 중 짓궂고 수치스러운 말로 상대를 놀리고 싶다.', 'Mid-play, I want to tease my partner with mean, filthy words.', { degrader: 3 }],
+        ['플레이 중 수치스러운 말을 듣는 것이 이상하게 흥분된다.', 'Being called filthy, humiliating things mid-play strangely turns me on.', { degradee: 3 }],
+        ['"이런 것도 못 참아?" 같은 짓궂은 도발로 상대를 몰아붙이고 싶다.', 'Cornering my partner with taunts like “can’t even take this?” appeals to me.', { degrader: 2, sadist: 1 }],
+        ['부끄러운 자세나 행동을 하도록 시켜지는 상황이 흥분된다.', 'Being ordered into embarrassing poses or acts excites me.', { degradee: 2, sub: 1 }],
+        ['오르가즘을 허락제로 만들어 상대를 통제하고 싶다.', 'I want to control my partner’s orgasms — permission required.', { dom: 2, sadist: 1 }],
+        ['"아직 안 돼"라며 절정을 통제당하는 상황이 흥분된다.', 'Being told “not yet” — my peak controlled by them — excites me.', { sub: 2, maso: 1 }],
+        ['촛농이나 얼음처럼 온도로 자극하는 플레이를 해보고 싶다.', 'Temperature play — warm wax, ice cubes — is something I want to try.', { expl: 2, sadist: 1, maso: 1 }],
+        ['야한 말(더티토크)을 하는 쪽이 좋다.', 'I like being the one talking dirty.', { dom: 1, degrader: 1, exhib: 1 }],
+        ['귓가에 야한 말을 들으면 무너진다.', 'Dirty talk whispered in my ear undoes me.', { sub: 1, degradee: 1 }],
+        ['밖에서 몰래 아슬아슬한 장난을 치는 상상이 흥분된다 (허벅지 위 손, 은밀한 속삭임).', 'Sneaky public teasing — a hand on a thigh, a whispered promise — thrills me.', { exhib: 2, expl: 1 }],
+        ['상대가 나를 위해 고른 속옷이나 옷을 입고 보여주고 싶다.', 'I want to model the lingerie or outfit my partner picked for me.', { exhib: 2, pet: 1 }],
+        ['상대에게 입히고 싶은 속옷이나 옷을 직접 고르고 싶다.', 'I want to pick exactly what my partner wears for me.', { owner: 1, dom: 1, voyeur: 1 }],
+        ['함께 야한 영상을 보며 분위기를 데우는 것이 좋다.', 'Watching something explicit together to heat things up sounds good.', { voyeur: 2, expl: 1 }],
+        ['우리 모습을 촬영해서 나중에 같이 보는 상상을 해봤다.', 'I’ve imagined filming us and watching it back together.', { exhib: 1, voyeur: 2 }],
+        ['손이나 패들로 엉덩이를 때리는 쪽이 되고 싶다.', 'I want to be the one spanking — hand or paddle.', { sadist: 2, dom: 1 }],
+        ['손이나 패들로 엉덩이를 맞는 쪽이 되고 싶다.', 'I want to be the one getting spanked — hand or paddle.', { maso: 2, sub: 1 }],
+        ['내가 남긴 키스마크나 잇자국을 보면 뿌듯하다.', 'Marks I leave — hickeys, bite marks — make me proud.', { sadist: 1, owner: 1, primal_h: 1 }],
+        ['몸에 남은 자국을 보며 두고두고 그 순간을 떠올리는 게 좋다.', 'I love finding marks on me later and remembering exactly how they got there.', { maso: 1, pet: 1, primal_p: 1 }],
+        ['상대의 입을 막아 말을 빼앗는 플레이에 끌린다.', 'Gagging my partner — taking their words away — appeals to me.', { rigger: 1, dom: 1 }],
+        ['입이 막혀 소리를 낼 수 없는 상태가 흥분된다.', 'Being gagged, unable to make a sound, excites me.', { bunny: 1, sub: 1 }],
+        ['성인용품 샵을 함께 구경하며 고르는 데이트를 해보고 싶다.', 'Browsing a toy shop together and picking things out sounds like a great date.', { expl: 2 }],
+        ['"오늘 밤엔 뭘 해볼까" 함께 계획을 세우는 것 자체가 설렌다.', 'Planning a scene together — “what shall we try tonight” — is itself a thrill.', { expl: 1, switch: 1 }],
+        ['어떤 플레이를 하든, 끝나면 서로의 상태를 묻고 챙기고 싶다.', 'Whatever we do, I want us to check in and care for each other after.', { vanilla: 2 }],
       ];
 
       /* ═══ state ═══ */
@@ -402,11 +450,14 @@
         $('qBack').style.visibility = idx > 0 ? 'visible' : 'hidden';
         const col = $('ansCol');
         col.innerHTML = '';
+        col.dataset.lock = ''; // re-armed for the new question
         STR.ans.forEach((label, v) => {
           const b = document.createElement('button');
           b.className = 'ans-btn' + (answers[idx] === v ? ' sel' : '');
           b.textContent = t(label);
           b.addEventListener('click', () => {
+            if (col.dataset.lock) return; // ignore double taps while advancing
+            col.dataset.lock = '1';
             answers[idx] = v;
             b.classList.add('sel');
             setTimeout(() => {
@@ -435,6 +486,7 @@
       }
 
       async function finish() {
+        if (myEntry) return; // already finished (double-tap guard)
         const scores = computeScores(answers);
         myEntry = { type: 'bdsm', ts: Date.now(), who, scores };
         renderResult(myEntry);
@@ -504,7 +556,8 @@
         ).join('');
         // both high (>=60) → talking points; complementary pairs → matches
         const both = sorted.filter(x => x.me >= 60 && x.you >= 60).map(x => x.a.e + t(x.a.n));
-        const PAIRS = [['dom', 'sub'], ['sadist', 'maso'], ['rigger', 'bunny'], ['brat', 'tamer'], ['exhib', 'voyeur']];
+        const PAIRS = [['dom', 'sub'], ['sadist', 'maso'], ['rigger', 'bunny'], ['brat', 'tamer'], ['exhib', 'voyeur'],
+          ['primal_h', 'primal_p'], ['owner', 'pet'], ['degrader', 'degradee']];
         const fits = [];
         PAIRS.forEach(([p, q]) => {
           const A = AK[p], B = AK[q];
