@@ -27,6 +27,9 @@
     'sel.saju.d':  ['생년월일시로 사주팔자를 세우고<br>일간과 오행의 기운을 읽어드려요', 'Cast your Four Pillars from your birth data<br>and read your day master &amp; five elements'],
     'sel.tarot.t': ['타로점 · Tarot', 'Tarot Reading'],
     'sel.tarot.d': ['카드를 직접 섞고 뽑아서<br>지금 필요한 메시지를 확인해요', 'Shuffle and pick the cards yourself<br>to hear the message you need now'],
+    'sel.gh.t':  ['궁합 · Compatibility', 'Couple Compatibility'],
+    'sel.gh.d':  ['두 사람의 사주를 나란히 세우고<br>합과 상생의 케미를 읽어드려요', 'Cast both charts side by side<br>and read the chemistry between them'],
+    'title.gh':  ['💞 사주 궁합', '💞 Compatibility'],
     'sel.history': ['🕘 지난 기록 보기', '🕘 Past readings'],
 
     'sj.title':  ['📜 사주 정보 입력', '📜 Birth details'],
@@ -87,6 +90,86 @@
     'p.unknown': ['모름', '—'],
 
     'disc': ['본 콘텐츠는 재미와 자기 성찰을 위한 것으로, 실제 미래를 예측하지 않습니다.', 'This content is for fun and self-reflection; it does not predict the actual future.'],
+
+    'gh.title': ['💞 두 사람의 정보', '💞 Both of your birth details'],
+    'gh.sub':   ['각자의 생년월일을 알려주세요', 'Enter each person’s birth details'],
+    'gh.a':     ['첫 번째 사람', 'Person one'],
+    'gh.b':     ['두 번째 사람', 'Person two'],
+    'gh.go':    ['궁합 보기 💞', 'Read our match 💞'],
+    'gh.score': ['궁합 점수', 'Match Score'],
+    'gh.ilgan': ['일간 케미', 'Day-Master Chemistry'],
+    'gh.branch': ['배우자궁 · 띠 인연', 'Spouse Seats & Zodiac Ties'],
+    'gh.elem':  ['오행 주고받기', 'Elemental Give & Take'],
+    'gh.overall': ['🌟 총평', '🌟 Overall'],
+    'gh.good':  ['잘 맞는 점', 'Where You Click'],
+    'gh.watch': ['조심할 점', 'Where to Be Gentle'],
+    'gh.advice': ['더 좋아지는 법', 'How to Grow Closer'],
+    'gh.of':    ['{a} ♥ {b}', '{a} ♥ {b}'],
+    'gh.ilganOf': ['일간 {g}', 'Day master {g}'],
+    'load.gh':  ['AI가 두 사주의 궁합을 깊이 읽고 있어요…', 'The AI is reading your two charts together…'],
+    'h.gh':     ['{a} ♥ {b} 궁합', '{a} ♥ {b} match'],
+    'gh.alert.date': ['두 사람의 생년월일을 모두 입력해주세요!', 'Please enter both birth dates!'],
+
+    'ghr.ganhe': ['두 사람의 일간이 천간합(合)을 이루는, 사주에서 손꼽는 귀한 인연이에요. 서로에게 끌리는 이유가 명식에 새겨져 있네요.',
+      'Your day masters form a Heavenly Stem union (合) — one of the classic marks of a fated pair. The pull between you is written into the charts.'],
+    'ghr.비겁': ['{a}와 {b}는 서로 닮은 기운을 지닌, 친구 같은 인연이에요. 통하는 게 많은 만큼 양보의 미덕이 관계를 더 단단하게 해줘요.',
+      '{a} and {b} carry kindred energies — like best friends. You understand each other easily; a little yielding makes it rock solid.'],
+    'ghr.식상': ['{a}의 기운이 {b}를 북돋아 살리는 흐름이에요. {a}의 표현과 아이디어가 {b}에게 생기를 불어넣어요.',
+      '{a}’s energy feeds {b}’s spark — {a}’s words and ideas bring {b} to life.'],
+    'ghr.재성': ['{a}가 {b}를 아끼고 책임지고 싶어 하는 구도예요. 챙겨주고 싶은 마음이 자연스럽게 흘러갑니다.',
+      'The charts set {a} up to cherish and provide for {b}; the urge to take care flows naturally.'],
+    'ghr.관성': ['{b}가 {a}에게 든든한 기준이 되어주는 구도예요. {a}는 {b} 곁에서 더 좋은 사람이 되고 싶어져요.',
+      '{b} gives {a} structure and steadiness; around {b}, {a} wants to be their best self.'],
+    'ghr.인성': ['{b}가 {a}를 품고 길러주는 흐름이에요. 곁에 있으면 이상하게 마음이 놓이는 이유가 여기 있어요.',
+      '{b} nourishes and shelters {a} — this is why being together simply feels safe.'],
+
+    'ghb.d.liuhe': ['두 사람의 배우자궁(일지)이 육합(六合)으로 꼭 맞물려 있어요. 함께 있을 때 가장 편안해지는 조합이에요.',
+      'Your spouse seats lock together in a Six Harmony (六合) — the kind of pair most at ease side by side.'],
+    'ghb.d.sanhe': ['배우자궁이 삼합(三合)의 같은 팀이에요. 자연스럽게 같은 방향을 바라보게 되는 인연이에요.',
+      'Your spouse seats belong to the same Triple Harmony (三合) team — you naturally end up facing the same way.'],
+    'ghb.d.same': ['배우자궁이 같은 글자예요. 서로의 속마음을 거울처럼 알아보는 인연이에요.',
+      'Your spouse seats share the same branch — you read each other like mirrors.'],
+    'ghb.d.chong': ['배우자궁이 충(沖)으로 마주 서 있어요. 불꽃이 튀어 지루할 틈이 없지만, 부딪힌 날엔 한 템포 쉬어가는 지혜가 필요해요.',
+      'Your spouse seats stand in a Clash (沖) — sparks fly and it’s never boring, but on rough days give it one beat before reacting.'],
+    'ghb.d.none': ['배우자궁은 특별한 합도 충도 없는 담백한 사이예요. 꾸준함이 이 조합의 힘이 됩니다.',
+      'Your spouse seats are plain and steady — no dramatic bond or clash. Consistency is this pair’s superpower.'],
+    'ghb.y.good': ['띠 인연도 합(合)을 이루고 있어요 — 어른들이 봐도 고개를 끄덕일 조합이에요.',
+      'Even your zodiac years harmonize — the kind of match elders nod at.'],
+    'ghb.y.chong': ['띠끼리는 충이라 첫인상이 강렬했을 수 있어요. 오래 볼수록 진가가 드러나는 조합이에요.',
+      'Your zodiac years clash — first impressions may have run hot; this pair grows better with time.'],
+    'ghb.y.none': ['띠 인연은 무난하게 흘러가는 편이에요.', 'Your zodiac tie runs easygoing.'],
+
+    'ghe.fill': ['{b}가 {a}에게 부족한 {el} 기운을 채워줘요', '{b} fills the {el} energy {a} lacks'],
+    'ghe.none': ['서로의 오행이 비슷한 결이라, 부족한 기운은 함께 채워가면 돼요.',
+      'Your five-element mixes run on similar lines — you can build the missing energies together.'],
+    'ghy.comp': ['한 사람은 양(陽), 한 사람은 음(陰)의 기운이 강해 서로의 온도를 맞춰주는 조합이에요.',
+      'One of you runs yang-bright, the other yin-deep — you balance each other’s temperature.'],
+    'ghy.same': ['둘 다 비슷한 극의 기운이 강해 리듬이 잘 맞아요. 가끔은 서로의 브레이크가 되어주세요.',
+      'You both run on the same current — great rhythm; just take turns being the brakes.'],
+    'ghy.bal': ['음양이 고르게 어우러진 안정적인 조합이에요.', 'Your yin-yang mix is balanced and stable.'],
+
+    'ghs.90': ['사주가 먼저 알아본 인연이에요. 명식 곳곳이 서로를 향해 맞물려 있어요.',
+      'The charts recognized each other before you did — interlocking at every turn.'],
+    'ghs.80': ['손꼽히게 좋은 조합이에요. 서로의 기운이 애쓰지 않아도 힘을 보태줍니다.',
+      'A standout match — your energies lend each other strength without trying.'],
+    'ghs.70': ['탄탄하게 잘 맞는 궁합이에요. 서로 다른 점은 관계를 넓혀주는 재료가 돼요.',
+      'A solidly good match — your differences become material for growth.'],
+    'ghs.60': ['서로 다른 색이 만나 하나의 그림을 완성하는 궁합이에요. 노력한 만큼 정직하게 깊어집니다.',
+      'Two different colors completing one picture — this bond deepens honestly with effort.'],
+    'ghg.none': ['무난하고 편안한 흐름 자체가 이 조합의 미덕이에요.', 'The easy, steady flow itself is this pair’s virtue.'],
+    'ghgl.ganhe': ['일간 천간합(合)', 'Day-stem union (合)'],
+    'ghgl.dliuhe': ['배우자궁 육합', 'Spouse-seat six harmony'],
+    'ghgl.dsanhe': ['배우자궁 삼합', 'Spouse-seat triple harmony'],
+    'ghgl.dsame': ['같은 배우자궁', 'Matching spouse seats'],
+    'ghgl.ygood': ['띠 합', 'Zodiac harmony'],
+    'ghgl.fill': ['오행 보완 {n}가지', '{n} elemental complement(s)'],
+    'ghgl.yy': ['음양 보완', 'Yin-yang balance'],
+    'ghwl.dchong': ['배우자궁 충 — 다툰 날엔 한 박자 쉬어가기', 'Spouse-seat clash — pause a beat on rough days'],
+    'ghwl.ychong': ['띠 충 — 시간이 편이 되어주는 조합', 'Zodiac clash — time is on your side'],
+    'ghwl.yysame': ['같은 극의 기운 — 번갈아 브레이크 되어주기', 'Same-pole energy — take turns being the brakes'],
+    'ghw.none': ['크게 부딪히는 지점이 없는 편안한 명식이에요.', 'No major friction points — an easy pair of charts.'],
+    'gha.static': ['서로의 다른 기운은 고치려 하기보다 빌려 쓰세요. 매일의 안부와 작은 고마움 인사가 좋은 합을 현실로 만듭니다.',
+      'Borrow each other’s different energies instead of fixing them. Daily check-ins and small thank-yous turn a good chart into a good life.'],
 
     't.topic.title': ['🃏 어떤 이야기가 궁금한가요?', '🃏 What would you like to ask about?'],
     't.topic.sub':   ['질문 주제를 골라주세요', 'Choose a topic'],
@@ -172,11 +255,13 @@
   }
 
   /* ═══════════ view manager ═══════════ */
-  const VIEWS = ['v-select', 'v-saju-input', 'v-saju-result', 'v-tarot-topic', 'v-tarot-spread', 'v-tarot-table', 'v-history'];
+  const VIEWS = ['v-select', 'v-saju-input', 'v-saju-result', 'v-gh-input', 'v-gh-result', 'v-tarot-topic', 'v-tarot-spread', 'v-tarot-table', 'v-history'];
   const BACK_MAP = {
     'v-select': null,
     'v-saju-input': 'v-select',
     'v-saju-result': 'v-saju-input',
+    'v-gh-input': 'v-select',
+    'v-gh-result': 'v-gh-input',
     'v-tarot-topic': 'v-select',
     'v-tarot-spread': 'v-tarot-topic',
     'v-tarot-table': 'v-tarot-spread',
@@ -186,6 +271,8 @@
     'v-select': 'title.fortune',
     'v-saju-input': 'title.saju',
     'v-saju-result': 'title.saju',
+    'v-gh-input': 'title.gh',
+    'v-gh-result': 'title.gh',
     'v-tarot-topic': 'title.tarot',
     'v-tarot-spread': 'title.tarot',
     'v-tarot-table': 'title.tarot',
@@ -216,6 +303,7 @@
     applyStatic();
     // re-render dynamic screens in the new language
     if (currentView === 'v-saju-result' && lastSajuEntry) await renderSajuResult(lastSajuEntry);
+    if (currentView === 'v-gh-result' && lastGhEntry) await renderGhResult(lastGhEntry);
     if (currentView === 'v-history') renderHistory();
     if (currentView === 'v-tarot-table') await rerenderTarotTexts();
   });
@@ -475,6 +563,9 @@
         if (segEl.id === 'modeSeg') {
           $('timeField').style.display = b.dataset.v === 'three' ? 'none' : 'block';
         }
+        if (segEl.id === 'ghCalA' || segEl.id === 'ghCalB') {
+          $('ghLeapRow' + segEl.id.slice(-1)).style.display = b.dataset.v === 'lunar' ? 'flex' : 'none';
+        }
       });
     });
   }
@@ -482,6 +573,7 @@
   segInit($('genderSeg'));
   segInit($('countrySeg'));
   segInit($('modeSeg'));
+  ['ghCountryA', 'ghCalA', 'ghGenderA', 'ghCountryB', 'ghCalB', 'ghGenderB'].forEach(id => segInit($(id)));
 
   /* standard-time offset per birth country; the almanac library works on
      UTC+8 (CST), so birth times are shifted onto that base before computing */
@@ -495,6 +587,7 @@
   document.querySelectorAll('[data-go]').forEach(b => {
     b.addEventListener('click', () => {
       if (b.dataset.go === 'saju') { show('v-saju-input'); ensureLunar().catch(() => {}); }
+      else if (b.dataset.go === 'gh') { ghPrefill(); show('v-gh-input'); ensureLunar().catch(() => {}); }
       else show('v-tarot-topic');
     });
   });
@@ -720,7 +813,7 @@
 
   function tf2(key, vars) {
     let s = t(key);
-    Object.keys(vars).forEach(k => { s = s.replace('{' + k + '}', vars[k]); });
+    Object.keys(vars).forEach(k => { s = s.split('{' + k + '}').join(vars[k]); });
     return s;
   }
 
@@ -855,6 +948,233 @@
 
   $('sjrAgain').addEventListener('click', () => { backOverride = null; show('v-saju-input'); });
   $('sjrHome').addEventListener('click', () => { backOverride = null; show('v-select'); });
+
+  /* ═══════════ compatibility (gunghap) ═══════════ */
+  // heavenly-stem unions (천간합) and branch relations (육합/충/삼합)
+  const GANHE = { '甲': '己', '己': '甲', '乙': '庚', '庚': '乙', '丙': '辛', '辛': '丙', '丁': '壬', '壬': '丁', '戊': '癸', '癸': '戊' };
+  const LIUHE = { '子': '丑', '丑': '子', '寅': '亥', '亥': '寅', '卯': '戌', '戌': '卯', '辰': '酉', '酉': '辰', '巳': '申', '申': '巳', '午': '未', '未': '午' };
+  const CHONG = { '子': '午', '午': '子', '丑': '未', '未': '丑', '寅': '申', '申': '寅', '卯': '酉', '酉': '卯', '辰': '戌', '戌': '辰', '巳': '亥', '亥': '巳' };
+  const sanheGroup = (z) => ['申子辰', '亥卯未', '寅午戌', '巳酉丑'].find(g => g.includes(z)) || null;
+
+  let lastGhEntry = null;
+  const GH_INPUTS_KEY = 'gh_inputs_v1';
+
+  const setSeg = (segEl, v) => segEl.querySelectorAll('button').forEach(b => b.classList.toggle('sel', b.dataset.v === v));
+
+  function ghPrefill() {
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(GH_INPUTS_KEY)); } catch {}
+    if (!saved) return;
+    ['A', 'B'].forEach(s => {
+      const p = saved[s];
+      if (!p) return;
+      $('ghName' + s).value = p.name || '';
+      $('ghDate' + s).value = p.date || '';
+      $('ghTime' + s).value = p.time || '12:00';
+      $('ghNoTime' + s).checked = !!p.noTime;
+      $('ghLeap' + s).checked = !!p.leap;
+      setSeg($('ghCountry' + s), p.country || 'KR');
+      setSeg($('ghCal' + s), p.cal || 'solar');
+      setSeg($('ghGender' + s), p.gender || '');
+      $('ghLeapRow' + s).style.display = p.cal === 'lunar' ? 'flex' : 'none';
+    });
+  }
+  function ghSaveInputs() {
+    const grab = (s) => ({
+      name: $('ghName' + s).value.trim(),
+      date: $('ghDate' + s).value,
+      time: $('ghTime' + s).value,
+      noTime: $('ghNoTime' + s).checked,
+      leap: $('ghLeap' + s).checked,
+      country: segVal($('ghCountry' + s)),
+      cal: segVal($('ghCal' + s)),
+      gender: segVal($('ghGender' + s)),
+    });
+    try { localStorage.setItem(GH_INPUTS_KEY, JSON.stringify({ A: grab('A'), B: grab('B') })); } catch {}
+  }
+
+  function readGhPerson(s) {
+    const dateStr = $('ghDate' + s).value;
+    const [y, m, d] = (dateStr || '').split('-').map(Number);
+    const tm = $('ghTime' + s).value;
+    const hasTime = !$('ghNoTime' + s).checked && !!tm;
+    let hh = 12, mi = 0;
+    if (hasTime) [hh, mi] = tm.split(':').map(Number);
+    return {
+      dateStr,
+      name: $('ghName' + s).value.trim() || (s === 'A' ? 'A' : 'B'),
+      input: {
+        cal: segVal($('ghCal' + s)), leap: $('ghLeap' + s).checked,
+        country: segVal($('ghCountry' + s)), gender: segVal($('ghGender' + s)),
+        y, m, d, hasTime, hh, mi,
+      },
+    };
+  }
+
+  function ghAnalyze(a, b) {
+    const gA = a.pillars.day[0], gB = b.pillars.day[0];
+    const elA = GAN_EL[gA], elB = GAN_EL[gB];
+    const ganhe = GANHE[gA] === gB;
+    const dayRel = relationOf(elA, elB); // what B is to A in ten-gods terms
+    const branchRel = (x, y) => x === y ? 'same'
+      : LIUHE[x] === y ? 'liuhe'
+      : CHONG[x] === y ? 'chong'
+      : sanheGroup(x) && sanheGroup(x) === sanheGroup(y) ? 'sanhe' : 'none';
+    const dayBranch = branchRel(a.pillars.day[1], b.pillars.day[1]);
+    const yearBranch = branchRel(a.pillars.year[1], b.pillars.year[1]);
+    const cA = countElements(a.pillars), cB = countElements(b.pillars);
+    const fillsAB = EL_ORDER.filter(el => cA[el] === 0 && cB[el] >= 2); // b fills a's lack
+    const fillsBA = EL_ORDER.filter(el => cB[el] === 0 && cA[el] >= 2);
+    const yyA = countYinYang(a.pillars), yyB = countYinYang(b.pillars);
+    const dominant = (yy) => yy.yang - yy.yin >= 2 ? 'yang' : yy.yin - yy.yang >= 2 ? 'yin' : 'bal';
+    const dA = dominant(yyA), dB = dominant(yyB);
+    const yyKind = dA !== 'bal' && dB !== 'bal' ? (dA !== dB ? 'comp' : 'same') : 'bal';
+
+    let score = 60;
+    if (ganhe) score += 12;
+    score += { liuhe: 12, sanhe: 8, same: 4, chong: -8, none: 0 }[dayBranch];
+    score += { liuhe: 4, sanhe: 4, same: 2, chong: -4, none: 0 }[yearBranch];
+    score += Math.min(9, (fillsAB.length + fillsBA.length) * 3);
+    score += yyKind === 'comp' ? 5 : yyKind === 'bal' ? 3 : 0;
+    score += { '재성': 4, '관성': 4, '인성': 3, '식상': 3, '비겁': 2 }[dayRel];
+    score = Math.max(58, Math.min(99, score));
+    return { gA, gB, ganhe, dayRel, dayBranch, yearBranch, fillsAB, fillsBA, yyKind, score };
+  }
+
+  function ghChartHtml(p) {
+    const defs = [['p.year', p.pillars.year], ['p.month', p.pillars.month], ['p.day', p.pillars.day], ['p.time', p.pillars.time]];
+    const d = p.pillars.day[0];
+    const gil = lang === 'ko' ? `${d}(${GAN_KO[d]}${GAN_EL[d]})` : `${d} (${GAN_EN_DESC[d]})`;
+    return `<div class="gh-chart"><div class="gname">${p.name}</div><div class="gp">`
+      + defs.map(([k]) => `<div class="lbl">${t(k)}</div>`).join('')
+      + defs.map(([, v]) => v ? `<div>${v[0]}<br>${v[1]}</div>` : `<div style="opacity:0.4">–<br>–</div>`).join('')
+      + `</div><div class="gil">${tf2('gh.ilganOf', { g: gil })}</div></div>`;
+  }
+
+  async function renderGhResult(entry) {
+    lastGhEntry = entry;
+    const A = entry.a, B = entry.b;
+    const an = ghAnalyze(A, B);
+    const nm = { a: A.name, b: B.name };
+
+    $('ghrTitle').textContent = tf2('gh.of', nm);
+    $('ghrSub').innerHTML = `${describeBirth(A)}<br>${describeBirth(B)}`;
+    $('ghrCharts').innerHTML = ghChartHtml(A) + ghChartHtml(B);
+    $('ghrScore').textContent = an.score + '%';
+    $('ghrHearts').textContent = '💗'.repeat(Math.max(1, Math.round(an.score / 20)));
+
+    // day-master chemistry
+    const gilLine = `<b>${A.name} ${an.gA}(${lang === 'ko' ? GAN_KO[an.gA] + GAN_EL[an.gA] : GAN_EN_DESC[an.gA]})`
+      + ` · ${B.name} ${an.gB}(${lang === 'ko' ? GAN_KO[an.gB] + GAN_EL[an.gB] : GAN_EN_DESC[an.gB]})</b>`;
+    $('ghrIlgan').innerHTML = `<div>${gilLine}</div>`
+      + (an.ganhe ? `<div class="enote">${t('ghr.ganhe')}</div>` : '')
+      + `<div style="margin-top:8px">${tf2('ghr.' + an.dayRel, nm)}</div>`;
+
+    // spouse seats & zodiac
+    $('ghrBranch').innerHTML = `<div>${t('ghb.d.' + an.dayBranch)}</div>`
+      + `<div style="margin-top:8px">${t(an.yearBranch === 'chong' ? 'ghb.y.chong' : an.yearBranch === 'none' ? 'ghb.y.none' : 'ghb.y.good')}</div>`;
+
+    // elemental give & take
+    const fills = an.fillsAB.map(el => tf2('ghe.fill', { a: A.name, b: B.name, el: elName(el) }))
+      .concat(an.fillsBA.map(el => tf2('ghe.fill', { a: B.name, b: A.name, el: elName(el) })));
+    $('ghrElem').innerHTML = (fills.length ? fills.map(x => `<div>💫 ${x}</div>`).join('') : `<div>${t('ghe.none')}</div>`)
+      + `<div style="margin-top:8px">${t('ghy.' + (an.yyKind === 'comp' ? 'comp' : an.yyKind === 'same' ? 'same' : 'bal'))}</div>`;
+
+    // AI reading — same non-blocking, both-languages, cached-on-entry
+    // pattern as saju; sections fetched as parallel single-section calls
+    let aiPromise = Promise.resolve();
+    if (!entry.ai) {
+      const payloadBase = {
+        a: { name: A.name, gender: A.gender || null, birth: describeBirth(A), pillars: A.pillars },
+        b: { name: B.name, gender: B.gender || null, birth: describeBirth(B), pillars: B.pillars },
+        rel: {
+          ganhe: an.ganhe, dayRel: an.dayRel, dayBranch: an.dayBranch, yearBranch: an.yearBranch,
+          fillsAB: an.fillsAB, fillsBA: an.fillsBA, yy: an.yyKind, score: an.score,
+        },
+      };
+      const SECS = ['overall', 'good', 'watch', 'advice'];
+      aiPromise = llmOnce(entry, () => Promise.all(
+        SECS.map(sec => llmReading('gunghap', { ...payloadBase, sections: [sec] }))
+      )).then(parts => {
+        const merged = { ko: {}, en: {} };
+        let ok = 0;
+        (parts || []).forEach(p => {
+          const sec = p && p.sections;
+          if (sec && sec.ko && sec.en) { Object.assign(merged.ko, sec.ko); Object.assign(merged.en, sec.en); ok++; }
+        });
+        if (ok === SECS.length) { entry.ai = merged; histUpdate(entry); }
+      });
+    }
+
+    const band = an.score >= 90 ? '90' : an.score >= 80 ? '80' : an.score >= 70 ? '70' : '60';
+    const goods = [];
+    if (an.ganhe) goods.push(t('ghgl.ganhe'));
+    if (an.dayBranch === 'liuhe') goods.push(t('ghgl.dliuhe'));
+    if (an.dayBranch === 'sanhe') goods.push(t('ghgl.dsanhe'));
+    if (an.dayBranch === 'same') goods.push(t('ghgl.dsame'));
+    if (an.yearBranch === 'liuhe' || an.yearBranch === 'sanhe') goods.push(t('ghgl.ygood'));
+    const nFills = an.fillsAB.length + an.fillsBA.length;
+    if (nFills) goods.push(tf2('ghgl.fill', { n: nFills }));
+    if (an.yyKind === 'comp') goods.push(t('ghgl.yy'));
+    const watches = [];
+    if (an.dayBranch === 'chong') watches.push(t('ghwl.dchong'));
+    if (an.yearBranch === 'chong') watches.push(t('ghwl.ychong'));
+    if (an.yyKind === 'same') watches.push(t('ghwl.yysame'));
+
+    const aiNote = (s) => s ? `<div class="enote ai">${s}</div>` : '';
+    const applyAi = () => {
+      const ai = entry.ai ? entry.ai[lang] || {} : {};
+      $('ghrOverall').innerHTML = t('ghs.' + band) + aiNote(ai.overall);
+      $('ghrGood').innerHTML = (goods.length ? `✨ ${goods.join(' · ')}` : t('ghg.none')) + aiNote(ai.good);
+      $('ghrWatch').innerHTML = (watches.length ? watches.map(x => `<div>⚠️ ${x}</div>`).join('') : t('ghw.none')) + aiNote(ai.watch);
+      $('ghrAdvice').innerHTML = t('gha.static') + aiNote(ai.advice);
+    };
+    applyAi();
+    const status = $('ghrAiStatus');
+    if (!entry.ai && LLM_ENDPOINT) {
+      status.textContent = t('ai.loading');
+      status.style.display = 'block';
+      aiPromise.then(() => {
+        if (lastGhEntry !== entry) return;
+        status.style.display = 'none';
+        applyAi();
+      });
+    } else {
+      status.style.display = 'none';
+    }
+    return { aiPromise };
+  }
+
+  $('ghGo').addEventListener('click', async () => {
+    const A = readGhPerson('A'), B = readGhPerson('B');
+    if (!A.dateStr || !B.dateStr) { alert(t('gh.alert.date')); return; }
+    $('ghGo').disabled = true;
+    $('ghLoading').style.display = 'block';
+    try {
+      await ensureLunar();
+      const sa = computeSaju(A.input);
+      const sb = computeSaju(B.input);
+      const entry = {
+        type: 'gunghap', ts: Date.now(),
+        a: { name: A.name, gender: A.input.gender, in: A.input, pillars: sa.pillars },
+        b: { name: B.name, gender: B.input.gender, in: B.input, pillars: sb.pillars },
+      };
+      histSave(entry);
+      ghSaveInputs();
+      const reading = await renderGhResult(entry);
+      if (!entry.ai) await waitAi('load.gh', reading.aiPromise);
+      backOverride = null;
+      show('v-gh-result');
+    } catch (e) {
+      alert(t('alert.fail'));
+    } finally {
+      $('ghGo').disabled = false;
+      $('ghLoading').style.display = 'none';
+    }
+  });
+
+  $('ghrAgain').addEventListener('click', () => { backOverride = null; show('v-gh-input'); });
+  $('ghrHome').addEventListener('click', () => { backOverride = null; show('v-select'); });
 
   /* ═══════════ tarot ═══════════ */
   const POS_KEYS = {
@@ -1352,6 +1672,8 @@
       if (e.type === 'saju') {
         const title = e.name ? tf('h.of', e.name) : t('h.saju');
         b.innerHTML = `<span class="hi">📜</span><span><div class="ht">${title}</div><div class="hd">${describeBirth(e)} · ${fmtTs(e.ts)}</div></span>`;
+      } else if (e.type === 'gunghap') {
+        b.innerHTML = `<span class="hi">💞</span><span><div class="ht">${tf2('h.gh', { a: e.a.name, b: e.b.name })}</div><div class="hd">${fmtTs(e.ts)}</div></span>`;
       } else {
         b.innerHTML = `<span class="hi">🃏</span><span><div class="ht">${t('h.tarot')} · ${t('topic.' + e.topic)}</div><div class="hd">${t('sp.' + e.spread)} · ${fmtTs(e.ts)}</div></span>`;
       }
@@ -1381,6 +1703,11 @@
       if (!e.ai) await waitAi('load.saju', reading.aiPromise);
       backOverride = 'v-history';
       show('v-saju-result');
+    } else if (e.type === 'gunghap') {
+      const reading = await renderGhResult(e);
+      if (!e.ai) await waitAi('load.gh', reading.aiPromise);
+      backOverride = 'v-history';
+      show('v-gh-result');
     } else {
       await loadTarotData();
       if (lang === 'en') await loadTarotEn();

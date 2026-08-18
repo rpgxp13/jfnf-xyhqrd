@@ -98,6 +98,54 @@ const TAROT_SCHEMA = {
   additionalProperties: false,
 };
 
+const GH_KEYS = ["overall", "good", "watch", "advice"];
+
+const GUNGHAP_SYSTEM = `너는 따뜻하고 통찰력 있는 사주 궁합 상담가야. 두 사람의 사주 원국과 미리 계산된 관계 요소(십성 관계, 천간합, 일지/년지의 합·충, 오행 보완, 음양 균형, 궁합 점수)를 바탕으로 궁합 풀이를 JSON으로 작성해.
+결과는 반드시 한국어(ko)와 영어(en) 두 버전을 모두 담아야 해 — 같은 풀이를 두 언어로 자연스럽게 쓰되, 직역 번역투가 아니라 각 언어에서 자연스러운 문장으로.
+
+섹션 내용:
+- overall (총평): 두 사람 케미의 전체 그림과 이 인연의 결. 두 사람의 이름을 불러가며. 4~5문장
+- good (잘 맞는 점): 합·상생·보완 요소가 실제 연애에서 어떤 모습으로 나타나는지 구체적으로. 3~4문장
+- watch (조심할 점): 충·상극 요소가 만들 수 있는 마찰과 그것을 부드럽게 다루는 법. 겁주지 말 것. 3~4문장
+- advice (더 좋아지는 법): 이 두 사람에게 맞춘 실천 가능한 다정한 조언. 3~4문장
+
+공통 규칙:
+- ko는 존댓말, en은 warm하고 자연스러운 영어. 재미와 자기 성찰을 위한 콘텐츠
+- 두 사람의 이름을 자연스럽게 사용할 것
+- 단정적 예언, 이별/결혼에 대한 확언 금지. "~한 기운이 있어요", "~해보면 좋겠어요" 식으로
+- 각 섹션은 헤더 없이 본문만`;
+
+function ghKeys(payload) {
+  const req = Array.isArray(payload.sections)
+    ? payload.sections.filter((k) => GH_KEYS.includes(k))
+    : [];
+  return req.length ? req : GH_KEYS;
+}
+
+function buildGunghapPrompt(payload) {
+  const P = (p) => `${p.name}${p.gender ? ` (${p.gender === "F" ? "female" : "male"})` : ""} — ${p.birth || ""}
+  pillars: year ${p.pillars.year}, month ${p.pillars.month}, day ${p.pillars.day}, hour ${p.pillars.time || "(unknown)"}`;
+  const r = payload.rel || {};
+  const lines = [
+    "Person A: " + P(payload.a),
+    "Person B: " + P(payload.b),
+    `Day-master relation (what B is to A, ten-gods): ${r.dayRel}`,
+    `Heavenly-stem union (천간합) between day masters: ${r.ganhe ? "YES" : "no"}`,
+    `Day-branch (spouse seat) relation: ${r.dayBranch}`,
+    `Year-branch (zodiac) relation: ${r.yearBranch}`,
+    `B fills A's missing elements: ${(r.fillsAB || []).join(", ") || "none"}`,
+    `A fills B's missing elements: ${(r.fillsBA || []).join(", ") || "none"}`,
+    `Yin-yang dynamic: ${r.yy}`,
+    `Computed match score: ${r.score}`,
+  ];
+  const keys = ghKeys(payload);
+  if (keys.length < GH_KEYS.length) {
+    lines.push(`이번 요청에서는 다음 섹션만 작성해: ${keys.join(", ")}`);
+  }
+  lines.push("ko(한국어)와 en(영어) 두 버전을 모두 작성해줘.");
+  return lines.join("\n");
+}
+
 const TAROT_OVERALL_SYSTEM = `너는 따뜻하고 통찰력 있는 타로 리더야. 한 스프레드에서 뽑힌 카드 전체를 종합한 총평을 JSON으로 써줘.
 결과는 반드시 한국어(ko)와 영어(en) 두 버전을 모두 담아야 해 — 같은 총평을 두 언어로 자연스럽게 쓰되, 직역 번역투가 아니라 각 언어에서 자연스러운 문장으로.
 
@@ -191,7 +239,7 @@ export const handler = async (event) => {
 
   const { kind, payload } = body;
   // hist_delete / hist_clear disabled for now (deletion feature commented out)
-  const KINDS = ["saju", "tarot", "tarot_overall", "hist_list", "hist_put"];
+  const KINDS = ["saju", "tarot", "tarot_overall", "gunghap", "hist_list", "hist_put"];
   const isHist = typeof kind === "string" && kind.startsWith("hist_");
   const maxBody = isHist ? 200000 : 20000; // history entries carry full bilingual AI text
   if (!KINDS.includes(kind) || !payload || (event.body || "").length > maxBody) {
@@ -261,11 +309,15 @@ export const handler = async (event) => {
     }
   }
 
-  const system = kind === "saju" ? SAJU_SYSTEM : kind === "tarot_overall" ? TAROT_OVERALL_SYSTEM : TAROT_SYSTEM;
+  const system = kind === "saju" ? SAJU_SYSTEM
+    : kind === "gunghap" ? GUNGHAP_SYSTEM
+    : kind === "tarot_overall" ? TAROT_OVERALL_SYSTEM : TAROT_SYSTEM;
   const prompt = kind === "saju" ? buildSajuPrompt(payload)
+    : kind === "gunghap" ? buildGunghapPrompt(payload)
     : kind === "tarot_overall" ? buildTarotOverallPrompt(payload)
     : buildTarotPrompt(payload);
-  const schema = kind === "saju" ? sajuSchema(sajuKeys(payload)) : TAROT_SCHEMA;
+  const schema = kind === "saju" ? sajuSchema(sajuKeys(payload))
+    : kind === "gunghap" ? sajuSchema(ghKeys(payload)) : TAROT_SCHEMA;
 
   try {
     const request = {
@@ -291,7 +343,7 @@ export const handler = async (event) => {
     const brify = (s) => (s || "").trim().replace(/\n/g, "<br>");
     const parsed = JSON.parse(raw);
 
-    if (kind === "saju") {
+    if (kind === "saju" || kind === "gunghap") {
       for (const lng of ["ko", "en"]) {
         for (const k of Object.keys(parsed[lng] || {})) parsed[lng][k] = brify(parsed[lng][k]);
       }
